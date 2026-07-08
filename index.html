@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MamaVege | 管理层平台</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#166534; --green2:#22c55e; --green-light:#dcfce7;
+    --red:#dc2626; --amber:#d97706;
+    --text:#1a1a1a; --muted:#6b7280; --border:#e5e7eb; --card:#ffffff; --bg:#f4f6f3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+  .mv-top{overflow:hidden}
+  .mv-top-main{display:flex;justify-content:space-between;align-items:center;padding:12px 24px;background:#166534}
+  .mv-top-left{display:flex;align-items:center;gap:12px}
+  .mv-top-logo{height:34px;background:#fff;border-radius:8px;padding:3px 8px;display:flex;align-items:center;text-decoration:none}
+  .mv-top-logo img{height:26px}
+  .mv-top-sep{width:1px;height:24px;background:rgba(255,255,255,.2)}
+  .mv-top-tool{color:#fff;font-size:14px;font-weight:700;letter-spacing:.3px}
+  .mv-top-right{display:flex;align-items:center;gap:12px}
+  .mv-top-btn{background:rgba(255,255,255,.12);border:none;color:rgba(255,255,255,.8);padding:5px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit}
+  .mv-top-btn:hover{background:rgba(255,255,255,.2);color:#fff}
+  .mv-top-sub{display:flex;justify-content:space-between;align-items:center;padding:5px 24px;background:#15532d;color:rgba(255,255,255,.6);font-size:11px}
+
+  .wrap{max-width:1000px;margin:0 auto;padding:2.2rem 1.5rem 3rem;}
+  .hero-greet{font-size:11px;color:#9ca3af;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+  .hero-title{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--green);margin-bottom:6px;}
+  .hero-sub{font-size:13px;color:var(--muted);margin-bottom:32px;line-height:1.6;}
+
+  .sec-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin:28px 0 12px;display:flex;align-items:center;gap:10px;}
+  .sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+  .sec-title:first-of-type{margin-top:0;}
+
+  .mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;}
+  .mod{
+    background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:22px;text-decoration:none;color:inherit;display:block;
+    transition:all .18s;box-shadow:0 1px 3px rgba(0,0,0,.04);position:relative;overflow:hidden;
+  }
+  .mod::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--green);}
+  .mod:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.09);}
+  .mod.off{opacity:.45;pointer-events:none;}
+  .mod.off::before{background:#d1d5db;}
+  .mod-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+  .mod-icon{width:42px;height:42px;border-radius:11px;background:#f0fdf4;display:flex;align-items:center;justify-content:center;font-size:22px;}
+  .mod.off .mod-icon{background:#f3f4f6;}
+  .mbadge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0;}
+  .mbadge.soon{background:#f3f4f6;color:#9ca3af;border-color:#e5e7eb;}
+  .mbadge.role{background:#eff6ff;color:#2563eb;border-color:#bfdbfe;}
+  .mod-name{font-size:15px;font-weight:700;color:#111827;margin-bottom:5px;}
+  .mod-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+  .mod-arr{position:absolute;right:18px;bottom:16px;font-size:14px;color:#c4c8cf;transition:all .18s;}
+  .mod:hover .mod-arr{color:var(--green);transform:translateX(3px);}
+
+  .lock-note{margin-top:36px;font-size:11px;color:#9ca3af;display:flex;align-items:center;gap:6px;}
+  #app{display:none;}
+</style>
+</head>
+<body>
+
+<div id="app">
+<div class="mv-top">
+  <div class="mv-top-main">
+    <div class="mv-top-left">
+      <a href="index.html" class="mv-top-logo"><img src="Mamavege_Logo.png" alt="MamaVege"></a>
+      <div class="mv-top-sep"></div>
+      <span class="mv-top-tool">🏛️ MamaVege 管理层平台</span>
+    </div>
+    <div class="mv-top-right">
+      <span id="top-user" style="color:rgba(255,255,255,.85);font-size:13px;font-weight:600"></span>
+      <button class="mv-top-btn" onclick="MVAuth.logout()">登出</button>
+    </div>
+  </div>
+  <div class="mv-top-sub">
+    <span class="mv-top-date"></span>
+    <span>MamaVege Management Platform · 妈子素 管理层</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero-greet">Welcome back</div>
+  <div class="hero-title">管理层工作台</div>
+  <div class="hero-sub">欢迎，<span id="welcome-name"></span>！这里是管理层专属平台，与业务平台分离部署、共用同一数据层。<br>以下模块按你的账号权限显示。</div>
+
+  <div class="sec-title">你的模块</div>
+  <div class="mods" id="mods-grid"></div>
+
+  <div class="lock-note">🔐 Supabase Auth + 数据库 RLS 权限保护 · 未授权模块在数据库层不可见</div>
+</div>
+</div>
+
+<script src="supabase.min.js"></script>
+<script src="js/auth/auth.js"></script>
+<script>
+document.querySelectorAll('.mv-top-date').forEach(e=>e.textContent=new Date().toLocaleDateString('zh-CN',{weekday:'short',year:'numeric',month:'short',day:'numeric'}));
+
+// 模块注册表：未来新模块在这里加一行 + Supabase 权限表加行即可
+const MODULES=[
+  { id:'finance',    icon:'💰', name:'Finance 财务',     desc:'月度财务监督（5大数字红绿灯）+ AP 付款管理', href:'finance/index.html', live:true },
+  { id:'purchasing', icon:'🛒', name:'Purchasing 采购',  desc:'采购管理板块 — 下一步建设',                   href:'#', live:false },
+  { id:'hr',         icon:'👥', name:'HR 人事',          desc:'外部系统未来串联，月度数字汇入 Finance',        href:'#', live:false },
+  { id:'production', icon:'🏭', name:'Production 生产',  desc:'外部系统未来串联（生产/仓库/研发板块）',        href:'#', live:false },
+];
+const ROLE_LABEL={admin:'管理员',editor:'编辑',viewer:'只读'};
+
+MVAuth.initPortal({ base:'', title:'Management Platform' }).then(ctx=>{
+  document.getElementById('app').style.display='block';
+  document.getElementById('top-user').textContent=ctx.email;
+  document.getElementById('welcome-name').textContent=ctx.email.split('@')[0];
+
+  const grid=document.getElementById('mods-grid');
+  const cards=[];
+  MODULES.forEach(m=>{
+    const role=ctx.can(m.id);
+    if(m.live && !role) return;          // 已上线但无权限 → 不显示
+    const off=!m.live;
+    const badge = off ? '<span class="mbadge soon">COMING SOON</span>'
+                      : '<span class="mbadge">LIVE</span> <span class="mbadge role">'+(ROLE_LABEL[role]||role)+'</span>';
+    cards.push(`<a class="mod ${off?'off':''}" href="${m.href}">
+      <div class="mod-top"><div class="mod-icon">${m.icon}</div><span>${badge}</span></div>
+      <div class="mod-name">${m.name}</div>
+      <div class="mod-desc">${m.desc}</div>
+      <div class="mod-arr">→</div>
+    </a>`);
+  });
+  grid.innerHTML=cards.join('')||'<div style="color:#9ca3af;font-size:13px">暂无可用模块，请联系管理员开通权限。</div>';
+});
+</script>
+</body>
+</html>

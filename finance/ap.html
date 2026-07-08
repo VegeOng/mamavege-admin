@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mama Vege — AP 付款管理</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#222;background:#f0f4f8}
+.nav{background:#0f172a;display:flex;align-items:center;padding:0 10px 0 14px;position:sticky;top:0;z-index:30;overflow-x:auto;min-height:46px}
+.nav-title{color:#fff;font-size:13px;font-weight:700;white-space:nowrap;padding:12px 12px 12px 0;flex-shrink:0}
+.nav-back{color:#94a3b8;font-size:12px;text-decoration:none;white-space:nowrap;padding:0 10px 0 0}
+.nav-back:hover{color:#fff}
+.nav-tabs{display:flex;flex:1;overflow-x:auto}
+.ntab{padding:0 14px;height:46px;display:flex;align-items:center;color:#94a3b8;cursor:pointer;font-size:12px;font-weight:500;border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0}
+.ntab:hover{color:#e2e8f0;background:rgba(255,255,255,.06)}
+.ntab.active{color:#fff;border-bottom-color:#3b82f6;background:rgba(59,130,246,.1)}
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;padding-left:10px}
+.nav-user{color:#94a3b8;font-size:11px;white-space:nowrap}
+.nav-logout{background:rgba(255,255,255,.1);border:none;color:#94a3b8;padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer}
+.nav-logout:hover{color:#fff;background:rgba(255,255,255,.2)}
+.toolbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:7px 14px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tbar-title{font-size:13px;font-weight:700;color:#1e293b;margin-right:4px}
+input[type=text],input[type=number],input[type=date],input[type=month],select{height:30px;padding:0 8px;border:1px solid #d1d5db;border-radius:5px;background:#fff;color:#222;font-size:12px;outline:none}
+input:focus,select:focus{border-color:#3b82f6}
+.btn{height:30px;padding:0 10px;border:1px solid #d1d5db;border-radius:5px;background:#fff;color:#374151;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.btn:hover{background:#f9fafb}
+.btn.primary{background:#3b82f6;color:#fff;border-color:#3b82f6}.btn.primary:hover{background:#2563eb}
+.btn.success{background:#16a34a;color:#fff;border-color:#16a34a}.btn.success:hover{background:#15803d}
+.btn.danger{background:#dc2626;color:#fff;border-color:#dc2626}.btn.danger:hover{background:#b91c1c}
+.btn.amber{background:#d97706;color:#fff;border-color:#d97706}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.flash{background:#bbf7d0!important;color:#14532d!important;border-color:#86efac!important}
+.ml-auto{margin-left:auto}
+.save-badge{font-size:11px;color:#6b7280;display:flex;align-items:center;gap:4px}
+.dot{width:7px;height:7px;border-radius:50%;background:#16a34a;display:inline-block}.dot.warn{background:#f59e0b}.dot.err{background:#dc2626}
+.page{display:none}.page.active{display:block}
+.pad{padding:14px 16px;max-width:1400px;margin:0 auto}
+.setup-banner{display:none;background:#fef3c7;border-bottom:1px solid #fde68a;color:#92400e;padding:10px 16px;font-size:12px;line-height:1.6}
+.setup-banner.show{display:block}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:12px 15px}
+.kpi h4{font-size:10px;color:#6b7280;margin-bottom:3px;font-weight:600;text-transform:uppercase}
+.kpi-val{font-size:19px;font-weight:700}.kpi-val.blue{color:#2563eb}.kpi-val.red{color:#dc2626}.kpi-val.amber{color:#d97706}.kpi-val.green{color:#16a34a}
+.kpi-sub{font-size:11px;color:#9ca3af;margin-top:2px}
+
+/* SUPPLIER CARDS */
+.sup-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:16px}
+.sup-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color .15s}
+.sup-card:hover{border-color:#93c5fd;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.sup-card.overdue{border-left:3px solid #dc2626}
+.sup-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.sup-name{font-size:13px;font-weight:700;color:#1e293b}
+.sup-meta{font-size:11px;color:#6b7280;margin-top:2px}
+.sup-amount{font-size:17px;font-weight:700;color:#dc2626;text-align:right;white-space:nowrap}
+.sup-amount-label{font-size:10px;color:#9ca3af;text-align:right}
+.sup-bar-track{height:3px;background:#f1f5f9;border-radius:2px;margin-bottom:8px;overflow:hidden}
+.sup-bar-fill{height:100%;border-radius:2px;background:#fca5a5}
+.sup-footer{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#6b7280}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.badge-red{background:#fee2e2;color:#991b1b}
+.badge-green{background:#dcfce7;color:#166534}
+.badge-amber{background:#fef3c7;color:#92400e}
+
+/* INVOICE TABLE */
+.back-link{font-size:12px;color:#2563eb;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-bottom:12px}
+.back-link:hover{text-decoration:underline}
+.tbl-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;min-width:800px;border-collapse:collapse;font-size:12px}
+thead th{background:#f8fafc;padding:7px 8px;text-align:left;font-weight:600;color:#475569;border-bottom:1px solid #e2e8f0;white-space:nowrap}
+tbody tr{border-bottom:1px solid #f1f5f9}
+tbody tr:hover{background:#fafafa}
+tbody tr.paid-row{opacity:.38;background:#f6fef9}
+tbody tr.overdue-row td:first-child{border-left:3px solid #dc2626}
+td{padding:6px 8px;vertical-align:middle}
+
+/* TICK */
+.tick-wrap{text-align:center;vertical-align:middle}
+.tick-box{width:18px;height:18px;border:2px solid #d1d5db;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;background:#fff;vertical-align:middle}
+.tick-box:hover{border-color:#16a34a}
+.tick-box.checked{background:#16a34a;border-color:#16a34a;color:#fff;font-size:12px;font-weight:700}
+.btn-batch{height:26px;padding:0 10px;border-radius:5px;border:1px solid #d1d5db;background:#f8fafc;color:#6b7280;font-size:11px;cursor:pointer;white-space:nowrap;font-weight:500}
+.btn-batch:hover{border-color:#d97706;color:#d97706;background:#fff}
+.btn-batch.active{background:#d97706;border-color:#d97706;color:#fff;font-weight:700}
+.btn-paid{height:26px;padding:0 10px;border-radius:5px;border:1px solid #d1d5db;background:#f8fafc;color:#6b7280;font-size:11px;cursor:pointer;white-space:nowrap;font-weight:500}
+.btn-paid:hover{border-color:#16a34a;color:#16a34a;background:#fff}
+.btn-paid.active{background:#16a34a;border-color:#16a34a;color:#fff;font-weight:700}
+
+/* PAYMENT BATCH BAR */
+.batch-bar{position:fixed;bottom:0;left:0;right:0;background:#1e293b;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;z-index:50;font-size:13px}
+.batch-bar.hidden{display:none}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:10px;padding:20px;width:520px;max-width:96vw;box-shadow:0 8px 32px rgba(0,0,0,.18);max-height:92vh;overflow-y:auto}
+.modal h3{font-size:14px;font-weight:700;margin-bottom:14px;color:#1e293b}
+.fr{margin-bottom:9px}
+.fr label{display:block;font-size:11px;color:#6b7280;margin-bottom:3px;font-weight:600}
+.fr input,.fr select,.fr textarea{width:100%;height:33px;padding:0 9px;border:1px solid #d1d5db;border-radius:5px;color:#222;font-size:12px;outline:none;background:#fff}
+.fr input:focus,.fr select:focus{border-color:#3b82f6}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+
+/* BANK BALANCES */
+.bank-row{display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;font-size:12px}
+.bank-row label{color:#6b7280;white-space:nowrap;font-size:11px}
+
+@media print{.nav,.toolbar,.batch-bar,.no-print,.setup-banner{display:none!important}.page{display:block!important}table{font-size:9pt}thead th{background:#f0f0f0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div class="nav">
+  <a class="nav-back" href="index.html">← Finance</a>
+  <div class="nav-title">🏭 Mama Vege AP</div>
+  <div class="nav-tabs">
+    <div class="ntab active" onclick="switchPage('dashboard')" id="ntab-dashboard">📊 Dashboard</div>
+    <div class="ntab" onclick="switchPage('supplier')" id="ntab-supplier">🏢 By Supplier</div>
+    <div class="ntab" onclick="switchPage('all')" id="ntab-all">➕ 新增发票</div>
+    <div class="ntab" onclick="switchPage('summary')" id="ntab-summary">📋 付款汇总</div>
+    <div class="ntab" onclick="switchPage('list')" id="ntab-list">📋 List</div>
+    <div class="ntab" onclick="switchPage('settings')" id="ntab-settings">⚙️ 设置</div>
+  </div>
+  <div class="nav-right">
+    <span class="nav-user" id="nav-user"></span>
+    <button class="nav-logout" onclick="MVAuth.logout()">登出</button>
+  </div>
+</div>
+
+<div class="setup-banner" id="setup-banner"></div>
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="toolbar">
+    <span class="tbar-title">付款总览</span>
+    <div class="ml-auto" style="display:flex;gap:6px;align-items:center">
+      <div class="save-badge"><span class="dot" id="save-dot"></span><span id="save-txt">☁️ 云端同步</span></div>
+      <button class="btn success no-print" onclick="manualSave()">💾 Save</button>
+      <button class="btn no-print" onclick="exportData()">📤 导出 JSON</button>
+      <button class="btn no-print" onclick="document.getElementById('importModal').classList.add('open')">📥 导入</button>
+      <button class="btn primary no-print" onclick="window.print()">🖨️ 打印</button>
+    </div>
+  </div>
+  <div class="pad">
+    <div class="kpi-grid" id="dash-kpi"></div>
+    <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:10px">银行余额</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px" id="bank-balances"></div>
+    <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:10px">逾期发票 (Top suppliers)</div>
+    <div id="dash-overdue"></div>
+  </div>
+</div>
+
+<!-- LIST PAGE -->
+<div class="page" id="page-list">
+  <div class="toolbar">
+    <span class="tbar-title">📋 List</span>
+    <span style="font-size:12px;color:#6b7280">选择日期：</span>
+    <input type="date" id="list-date-picker" onchange="onListDatePick()" style="height:30px;font-size:12px">
+    <button class="btn primary no-print" onclick="summaryAddInv()" id="list-add-btn" style="display:none">➕ 添加发票</button>
+    <div class="ml-auto" style="display:flex;gap:6px">
+      <button class="btn success no-print" onclick="manualSave()">💾 Save</button>
+      <button class="btn no-print" onclick="listPrint()">🖨️ 打印</button>
+    </div>
+  </div>
+  <div class="pad">
+    <div id="list-detail">
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:40px;text-align:center;color:#9ca3af;font-size:13px">
+        📅 请选择上方日期查看付款记录
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="page" id="page-settings">
+  <div class="toolbar">
+    <span class="tbar-title">⚙️ 设置</span>
+    <div class="ml-auto">
+      <button class="btn success no-print" onclick="manualSave()">💾 Save</button>
+    </div>
+  </div>
+  <div class="pad" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:800px">
+    <!-- Suppliers -->
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">
+      <div style="background:#f8fafc;padding:9px 14px;font-size:12px;font-weight:700;color:#1e293b;border-bottom:1px solid #e2e8f0">🏢 供应商列表</div>
+      <div id="settings-supplier-list" style="max-height:320px;overflow-y:auto"></div>
+      <div style="padding:10px 12px;border-top:1px solid #f1f5f9;display:flex;gap:6px">
+        <input type="text" id="new-supplier-input" placeholder="新供应商名称" style="flex:1;height:30px">
+        <button class="btn primary" onclick="addSettingsSupplier()">+ 添加</button>
+      </div>
+    </div>
+    <!-- Categories -->
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">
+      <div style="background:#f8fafc;padding:9px 14px;font-size:12px;font-weight:700;color:#1e293b;border-bottom:1px solid #e2e8f0">📂 Category 列表</div>
+      <div id="settings-category-list" style="max-height:320px;overflow-y:auto"></div>
+      <div style="padding:10px 12px;border-top:1px solid #f1f5f9;display:flex;gap:6px">
+        <input type="text" id="new-category-input" placeholder="新 Category 名称" style="flex:1;height:30px">
+        <button class="btn primary" onclick="addSettingsCategory()">+ 添加</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BY SUPPLIER -->
+<div class="page" id="page-supplier">
+  <div class="toolbar">
+    <span class="tbar-title">按供应商查看</span>
+    <input type="text" id="sup-search" placeholder="搜索供应商..." oninput="renderSupplierView()" style="width:180px">
+    <label style="font-size:12px;color:#6b7280;display:flex;align-items:center;gap:5px">
+      <input type="checkbox" id="sup-show-paid" onchange="renderSupplierView()"> 显示已付款
+    </label>
+    <div class="ml-auto" style="display:flex;gap:6px">
+      <button class="btn success no-print" onclick="manualSave()">💾 Save</button>
+      <button class="btn amber no-print" onclick="generateSummaryFromBatch()" id="gen-summary-btn" style="display:none">📋 生成付款汇总</button>
+      <button class="btn primary" onclick="openAddInv()">➕ 新增发票</button>
+    </div>
+  </div>
+  <div class="pad">
+    <div id="sup-year-view">
+      <div class="sup-grid" id="sup-grid"></div>
+    </div>
+    <div id="sup-detail-view" style="display:none">
+      <div class="back-link" onclick="backToSupGrid()">← 返回供应商列表</div>
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#1e293b" id="sup-detail-name"></div>
+          <div style="font-size:12px;color:#6b7280;margin-top:3px" id="sup-detail-meta"></div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:#6b7280">未付金额</div>
+          <div style="font-size:20px;font-weight:700;color:#dc2626" id="sup-detail-total"></div>
+        </div>
+      </div>
+      <div class="tbl-card"><div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>Invoice No.</th>
+            <th>Category</th>
+            <th style="text-align:right">Amount (RM)</th>
+            <th>Inv Date</th>
+            <th>Overdue</th>
+            <th>Voucher No.</th>
+            <th style="width:80px;text-align:center">准备付款</th>
+            <th style="width:80px;text-align:center">已付款</th>
+            <th class="no-print" style="width:50px"></th>
+          </tr></thead>
+          <tbody id="sup-detail-tbody"></tbody>
+        </table>
+      </div></div>
+      <div style="font-size:11px;color:#9ca3af;margin-top:6px;text-align:right" id="sup-detail-footer"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ALL INVOICES -->
+<div class="page" id="page-all">
+  <div class="toolbar">
+    <span class="tbar-title">➕ 新增发票</span>
+    <div class="ml-auto" style="display:flex;gap:6px">
+      <button class="btn success no-print" onclick="manualSave()">💾 Save</button>
+      <button class="btn primary no-print" onclick="openAddInv()">➕ 新增发票</button>
+    </div>
+  </div>
+  <div class="pad">
+    <div class="tbl-card"><div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Supplier</th>
+          <th>Invoice No.</th>
+          <th>Category</th>
+          <th style="text-align:right">Amount (RM)</th>
+          <th>Inv Date</th>
+          <th>Overdue</th>
+          <th>Voucher No.</th>
+          <th style="width:80px;text-align:center">准备付款</th>
+          <th style="width:80px;text-align:center">已付款</th>
+          <th class="no-print" style="width:50px"></th>
+        </tr></thead>
+        <tbody id="all-tbody"></tbody>
+      </table>
+    </div></div>
+    <div style="font-size:11px;color:#9ca3af;margin-top:6px;text-align:right" id="all-footer"></div>
+  </div>
+</div>
+
+<!-- PAYMENT SUMMARY PAGE -->
+<div class="page" id="page-summary">
+  <div class="toolbar">
+    <span class="tbar-title">📋 付款汇总</span>
+    <button class="btn primary no-print" onclick="summaryAddInv()">➕ 添加发票</button>
+    <button class="btn success no-print" onclick="summarySave()">💾 Save</button>
+    <div class="ml-auto" style="display:flex;gap:6px">
+      <button class="btn no-print" onclick="summaryPrint()">🖨️ 打印</button>
+    </div>
+  </div>
+  <div class="pad">
+    <!-- Date pills -->
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <span style="font-size:11px;color:#6b7280;white-space:nowrap">已保存：</span>
+      <div id="summary-date-pills" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      <button class="btn primary" style="height:26px;font-size:11px" onclick="summaryNewDate()">+ 新建汇总</button>
+    </div>
+    <!-- Current summary -->
+    <div id="summary-main" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+        <span style="font-size:14px;font-weight:700;color:#1e293b" id="summary-date-label"></span>
+        <button class="btn danger" style="height:24px;font-size:10px;padding:0 8px" onclick="summaryDelete()">删除此汇总</button>
+        <button class="btn" style="height:24px;font-size:10px;padding:0 8px;background:#eff6ff;border-color:#bfdbfe;color:#1e40af" onclick="sortSummaryByVoucher()">↕ 按 Voucher 排序</button>
+        <button class="btn success" style="height:24px;font-size:11px;padding:0 10px" onclick="confirmAllPaid()">✅ 确认全部付款</button>
+        <div style="margin-left:auto;font-family:monospace;font-size:15px;font-weight:700;color:#16a34a" id="summary-grand-total"></div>
+      </div>
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow-x:auto;margin-bottom:10px">
+        <div style="display:grid;grid-template-columns:140px 240px 160px 20px 220px 36px;background:#f8fafc;padding:7px 12px;font-size:11px;font-weight:600;color:#475569;border-bottom:1px solid #e2e8f0;min-width:820px">
+          <div>Voucher No.</div><div>Supplier</div><div style="text-align:right">Amount (RM)</div>
+          <div></div><div>Bank</div><div></div>
+        </div>
+        <div id="summary-tbody"></div>
+      </div>
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;font-weight:700;font-size:13px">
+        <span>合计 TOTAL</span>
+        <span style="font-family:monospace;color:#16a34a" id="summary-total-bar"></span>
+      </div>
+    </div>
+    <div id="summary-empty" style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:40px;text-align:center;color:#9ca3af;font-size:13px">
+      还没有付款汇总<br><span style="font-size:11px">点「+ 新建汇总」开始，或到 By Supplier 勾选「准备付款」后点「生成付款汇总」</span>
+    </div>
+  </div>
+</div>
+
+<!-- BATCH BAR -->
+<div class="batch-bar hidden" id="batch-bar">
+  <span id="batch-count">0 张已选</span>
+  <span id="batch-total" style="font-weight:700;color:#fbbf24"></span>
+  <div class="ml-auto" style="display:flex;gap:8px">
+    <button class="btn" style="background:#334155;color:#fff;border-color:#475569" onclick="clearBatch()">清除选择</button>
+    <button class="btn success" onclick="openBatchSummary()">📋 付款汇总</button>
+  </div>
+</div>
+
+<!-- ADD/EDIT INVOICE MODAL -->
+<div class="modal-bg" id="invModal" onclick="if(event.target===this)closeModal('invModal')">
+  <div class="modal">
+    <h3 id="invModalTitle">➕ 新增发票</h3>
+    <div class="fr"><label>供应商 *</label>
+      <input type="text" id="fi_supplier" list="supplier-list" placeholder="供应商名称">
+      <datalist id="supplier-list"></datalist>
+    </div>
+    <div class="grid2">
+      <div class="fr"><label>Invoice No. *</label><input type="text" id="fi_invno" placeholder="例：INV-001"></div>
+      <div class="fr"><label>Category</label><input type="text" id="fi_cat" list="cat-list" placeholder="类别">
+        <datalist id="cat-list"></datalist></div>
+    </div>
+    <div class="grid2">
+      <div class="fr"><label>Amount (RM) *</label><input type="number" id="fi_amount" step="0.01" placeholder="0.00"></div>
+      <div class="fr"><label>Payment Term (days)</label><input type="number" id="fi_term" placeholder="0 = 即时付款"></div>
+    </div>
+    <div class="grid2">
+      <div class="fr"><label>Invoice Date</label><input type="date" id="fi_invdate"></div>
+      <div class="fr"><label>Voucher No.</label><input type="text" id="fi_voucher" placeholder="P26-00001"></div>
+    </div>
+    <div class="fr">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="fi_paid"> 已付款
+      </label>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal('invModal')">取消</button>
+      <button class="btn danger" id="fi_del" style="display:none" onclick="deleteInv()">删除</button>
+      <button class="btn primary" onclick="saveInv()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- BATCH SUMMARY MODAL -->
+<div class="modal-bg" id="batchModal" onclick="if(event.target===this)closeModal('batchModal')">
+  <div class="modal" style="width:600px">
+    <h3>📋 付款汇总</h3>
+    <div id="batch-summary-content"></div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal('batchModal')">关闭</button>
+      <button class="btn primary" onclick="printBatchSummary()">🖨️ 打印</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-bg" id="importModal" onclick="if(event.target===this)closeModal('importModal')">
+  <div class="modal">
+    <h3>📥 导入备份 / 旧版数据</h3>
+    <div style="font-size:11px;color:#6b7280;margin-bottom:8px;line-height:1.6">
+      支持旧版 MamaVege_AP 的「📤 导出 JSON」文件内容。导入后数据写入 Supabase 云端，覆盖现有数据。
+    </div>
+    <div class="fr"><textarea id="importTxt" style="height:110px;font-family:monospace;font-size:11px;width:100%;border:1px solid #d1d5db;border-radius:5px;padding:8px" placeholder="粘贴 JSON..."></textarea></div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal('importModal')">取消</button>
+      <button class="btn primary" onclick="importData()">导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY ADD INVOICE MODAL -->
+<div class="modal-bg" id="summaryAddModal" onclick="if(event.target===this)closeModal('summaryAddModal')">
+  <div class="modal">
+    <h3>➕ 添加发票到付款汇总</h3>
+    <div class="fr"><label>供应商 *</label><input type="text" id="sa_supplier" placeholder="供应商名称"></div>
+    <div class="grid2">
+      <div class="fr"><label>Invoice No. *</label><input type="text" id="sa_invno" placeholder="例：INV-001"></div>
+      <div class="fr"><label>Amount (RM) *</label><input type="number" id="sa_amount" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="grid2">
+      <div class="fr"><label>Voucher No.</label><input type="text" id="sa_voucher" placeholder="P26-..."></div>
+      <div class="fr"><label>Bank</label><input type="text" id="sa_bank" placeholder="PBB / OCBC"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal('summaryAddModal')">取消</button>
+      <button class="btn primary" onclick="saveSummaryAddModal()">添加</button>
+    </div>
+  </div>
+</div>
+
+<script src="../supabase.min.js"></script>
+<script src="../js/auth/auth.js"></script>
+<script>
+/* ============================================================
+ * 存储层：Supabase 表 ap_state（key / data jsonb）
+ *   base      -> { baseInvs: [...] }          历史基础发票（原 BASE_INVS）
+ *   main      -> { invState, customInvs, bankBal }
+ *   summaries -> { summaries }
+ *   master    -> { suppliers, categories }
+ * 业务逻辑与旧版 MamaVege_AP 保持一致，只换掉 load/save。
+ * ============================================================ */
+let supa=null, EMAIL='';
+let BASE_INVS=[];
+let invState = {};   // _key -> {paid, voucher, ticked, batched}
+let customInvs = []; // user-added invoices
+let bankBal = {pbb: 0, ocbc: 0};
+let summaries = {};
+let masterSuppliers = [];
+let masterCategories = [];
+let activeSup = null;
+let editingKey = null;
+let activeListDate = null;
+let activeSummaryDate = null;
+
+/* ---------- 云端存取 ---------- */
+const _pending = {};
+const _timers = {};
+
+function payloadFor(key){
+  if(key==='base') return {baseInvs: BASE_INVS};
+  if(key==='main') return {invState, customInvs, bankBal};
+  if(key==='summaries') return {summaries};
+  if(key==='master') return {suppliers: masterSuppliers, categories: masterCategories};
+  return {};
+}
+function setBadge(state, extra){
+  const dot=document.getElementById('save-dot'), txt=document.getElementById('save-txt');
+  if(!dot||!txt) return;
+  if(state==='saving'){ dot.className='dot warn'; txt.textContent='保存中…'; }
+  else if(state==='ok'){ dot.className='dot'; txt.textContent='☁️ 已保存 '+new Date().toLocaleTimeString('zh-MY',{hour:'2-digit',minute:'2-digit'}); }
+  else { dot.className='dot err'; txt.textContent='❌ 保存失败'+(extra?('：'+extra):''); }
+}
+function queueSave(key){
+  _pending[key]=true; setBadge('saving');
+  clearTimeout(_timers[key]);
+  _timers[key]=setTimeout(()=>flushSave(key), 600);
+}
+async function flushSave(key){
+  clearTimeout(_timers[key]);
+  if(!_pending[key]) return true;
+  try{
+    const { error } = await supa.from('ap_state').upsert(
+      { key, data: payloadFor(key), updated_at: new Date().toISOString(), updated_by: EMAIL },
+      { onConflict: 'key' });
+    if(error){ setBadge('err', error.message); return false; }
+    delete _pending[key];
+    if(!Object.keys(_pending).length) setBadge('ok');
+    return true;
+  }catch(e){ setBadge('err','网络'); return false; }
+}
+async function flushAll(){
+  for(const k of Object.keys(_pending)) await flushSave(k);
+  return !Object.keys(_pending).length;
+}
+window.addEventListener('beforeunload', e=>{
+  if(Object.keys(_pending).length){ e.preventDefault(); e.returnValue=''; }
+});
+
+function saveData(){ queueSave('main'); }
+function saveSummaries(){ queueSave('summaries'); }
+function saveMaster(){ queueSave('master'); }
+
+async function loadAll(){
+  const { data, error } = await supa.from('ap_state').select('key, data');
+  if(error){
+    const b=document.getElementById('setup-banner');
+    b.classList.add('show');
+    b.innerHTML = /does not exist|relation|schema cache/i.test(error.message)
+      ? '⚠️ Supabase 的 <b>ap_state</b> 表尚未建立。请按 <b>SUPABASE-SETUP.md</b> 在 SQL Editor 执行建表 SQL 和 <b>sql/ap-seed.sql</b> 初始数据后刷新本页。'
+      : '⚠️ 数据载入失败：'+error.message;
+    return false;
+  }
+  const m = Object.fromEntries((data||[]).map(r=>[r.key, r.data||{}]));
+  BASE_INVS = (m.base && m.base.baseInvs) || [];
+  invState = (m.main && m.main.invState) || {};
+  customInvs = (m.main && m.main.customInvs) || [];
+  bankBal = (m.main && m.main.bankBal) || {pbb:0, ocbc:0};
+  summaries = (m.summaries && m.summaries.summaries) || {};
+  masterSuppliers = (m.master && m.master.suppliers) || [];
+  masterCategories = (m.master && m.master.categories) || [];
+  if(!masterSuppliers.length) masterSuppliers=[...new Set(allInvoices().map(i=>i.supplier).filter(Boolean))].sort();
+  if(!masterCategories.length) masterCategories=[...new Set(allInvoices().map(i=>i.category).filter(Boolean))].sort();
+  if(!(data||[]).length){
+    const b=document.getElementById('setup-banner');
+    b.classList.add('show');
+    b.innerHTML='ℹ️ 云端暂无 AP 数据。可执行 <b>sql/ap-seed.sql</b> 导入历史发票，或在旧版 AP 页面「📤 导出 JSON」后用右上角「📥 导入」迁移最新数据。';
+  }
+  return true;
+}
+
+/* ---------- 工具 ---------- */
+function r2(n){ return Math.round((n||0)*100)/100; }
+function calcOverdueDays(due_date){
+  if(!due_date) return 0;
+  const d = new Date(due_date+'T00:00:00');
+  if(isNaN(d.getTime())) return 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.max(0, Math.floor((today-d)/86400000));
+}
+function fmt(n){ return 'RM '+(n<0?'-':'')+Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+function uid(){ return 'custom_'+Date.now(); }
+
+function allInvoices(){
+  const base = BASE_INVS.map((inv,i)=>{
+    const key = inv._key || (inv.sheet+'|'+i);
+    const state = invState[key] || {};
+    return {...inv, _key: key, paid: state.paid!==undefined ? state.paid : !!inv.paid,
+      voucher: state.voucher !== undefined ? state.voucher : (inv.voucher||''),
+      ticked: state.ticked||false, batched: state.batched||false,
+      overdue_days: calcOverdueDays(inv.due_date)};
+  });
+  const customMapped = customInvs.map(ci=>{
+    const state = invState[ci._key]||{};
+    return {...ci, paid: state.paid!==undefined?state.paid:!!ci.paid,
+      voucher: state.voucher!==undefined?state.voucher:(ci.voucher||''),
+      ticked: state.ticked||false, batched: state.batched||false,
+      overdue_days: calcOverdueDays(ci.due_date)};
+  });
+  return [...base, ...customMapped];
+}
+
+function getState(key){ return invState[key]||{}; }
+function setState(key, patch){
+  invState[key] = {...getState(key), ...patch};
+  saveData();
+}
+
+// ---- NAV ----
+function switchPage(pid){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+pid).classList.add('active');
+  document.getElementById('ntab-'+pid).classList.add('active');
+  if(pid==='dashboard') renderDashboard();
+  else if(pid==='list') renderListPage();
+  else if(pid==='settings') renderSettingsPage();
+  else if(pid==='supplier'){
+    activeSup = null;
+    document.getElementById('sup-year-view').style.display='block';
+    document.getElementById('sup-detail-view').style.display='none';
+    renderSupplierView();
+  }
+  else if(pid==='all') renderAllView();
+  else if(pid==='summary') renderSummaryPage();
+}
+
+// ---- DASHBOARD ----
+function renderDashboard(){
+  const invs = allInvoices();
+  const unpaid = invs.filter(i=>!i.paid);
+  const overdue = unpaid.filter(i=>i.overdue_days>0);
+  const totalUnpaid = r2(unpaid.reduce((s,i)=>s+i.amount,0));
+  const totalOverdue = r2(overdue.reduce((s,i)=>s+i.amount,0));
+  const suppliers = new Set(unpaid.map(i=>i.supplier).filter(Boolean));
+
+  document.getElementById('dash-kpi').innerHTML=`
+    <div class="kpi"><h4>总欠款</h4><div class="kpi-val red">${fmt(totalUnpaid)}</div><div class="kpi-sub">${unpaid.length} 张未付</div></div>
+    <div class="kpi"><h4>逾期欠款</h4><div class="kpi-val amber">${fmt(totalOverdue)}</div><div class="kpi-sub">${overdue.length} 张逾期</div></div>
+    <div class="kpi"><h4>供应商数</h4><div class="kpi-val blue">${suppliers.size} 家</div><div class="kpi-sub">有未付款项</div></div>
+    <div class="kpi"><h4>已付款</h4><div class="kpi-val green">${invs.filter(i=>i.paid).length} 张</div><div class="kpi-sub">${fmt(r2(invs.filter(i=>i.paid).reduce((s,i)=>s+i.amount,0)))}</div></div>
+  `;
+
+  // Bank balances
+  document.getElementById('bank-balances').innerHTML=`
+    <div class="bank-row"><label>PBB</label>
+      <span id="disp-pbb" style="font-weight:700;font-size:13px;cursor:pointer;padding:2px 6px;border-bottom:1px solid #d1d5db;min-width:120px;display:inline-block" onclick="startBankEdit('pbb')" title="点击编辑">${bankBal.pbb?fmt(bankBal.pbb):'—'}</span>
+      <input type="number" id="edit-pbb" step="0.01" value="${bankBal.pbb||''}" placeholder="0.00" style="display:none;width:120px;border:none;border-bottom:2px solid #3b82f6;border-radius:0;background:transparent;font-weight:700;font-size:13px;padding:0 4px;height:24px;outline:none" onchange="bankBal.pbb=parseFloat(this.value)||0;saveData()" onblur="renderDashboard()">
+      <span style="font-size:11px;color:#6b7280">余额</span></div>
+    <div class="bank-row"><label>OCBC</label>
+      <span id="disp-ocbc" style="font-weight:700;font-size:13px;cursor:pointer;padding:2px 6px;border-bottom:1px solid #d1d5db;min-width:120px;display:inline-block" onclick="startBankEdit('ocbc')" title="点击编辑">${bankBal.ocbc?fmt(bankBal.ocbc):'—'}</span>
+      <input type="number" id="edit-ocbc" step="0.01" value="${bankBal.ocbc||''}" placeholder="0.00" style="display:none;width:120px;border:none;border-bottom:2px solid #3b82f6;border-radius:0;background:transparent;font-weight:700;font-size:13px;padding:0 4px;height:24px;outline:none" onchange="bankBal.ocbc=parseFloat(this.value)||0;saveData()" onblur="renderDashboard()">
+      <span style="font-size:11px;color:#6b7280">余额</span></div>
+    <div class="bank-row" style="background:#f0fdf4;border-color:#86efac"><label style="color:#166534">总余额</label><span style="font-size:14px;font-weight:700;color:#16a34a">${fmt(r2((bankBal.pbb||0)+(bankBal.ocbc||0)))}</span></div>
+  `;
+
+  // Overdue suppliers
+  const bySupplier = {};
+  overdue.forEach(i=>{
+    if(!bySupplier[i.supplier]) bySupplier[i.supplier]={invs:[],total:0,maxDays:0};
+    bySupplier[i.supplier].invs.push(i);
+    bySupplier[i.supplier].total += i.amount;
+    bySupplier[i.supplier].maxDays = Math.max(bySupplier[i.supplier].maxDays, i.overdue_days||0);
+  });
+  const sortedSups = Object.entries(bySupplier).sort((a,b)=>b[1].total-a[1].total).slice(0,8);
+  document.getElementById('dash-overdue').innerHTML = sortedSups.length
+    ? `<div class="tbl-card"><div class="tbl-wrap"><table>
+        <thead><tr><th>供应商</th><th style="text-align:right">逾期金额</th><th style="text-align:center">逾期张数</th><th style="text-align:center">最长逾期</th><th class="no-print"></th></tr></thead>
+        <tbody>${sortedSups.map(([sup,data])=>`<tr>
+          <td style="font-weight:600">${sup}</td>
+          <td style="text-align:right;color:#dc2626;font-family:monospace;font-weight:700">${fmt(r2(data.total))}</td>
+          <td style="text-align:center">${data.invs.length}</td>
+          <td style="text-align:center"><span class="badge ${data.maxDays>60?'badge-red':data.maxDays>30?'badge-amber':'badge-green'}">${data.maxDays} 天</span></td>
+          <td class="no-print" style="text-align:center"><button class="btn" style="height:22px;font-size:10px;padding:0 7px" onclick="drillSupplier('${sup.replace(/'/g,"\\'")}')">查看 →</button></td>
+        </tr>`).join('')}</tbody>
+      </table></div></div>`
+    : '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:16px;text-align:center;color:#16a34a;font-size:12px;font-weight:600">✅ 暂无逾期发票</div>';
+}
+
+// ---- BY SUPPLIER ----
+function renderSupplierView(){
+  const q = (document.getElementById('sup-search')?.value||'').toLowerCase();
+  const showPaid = document.getElementById('sup-show-paid')?.checked;
+  const invs = allInvoices();
+  const batchedCount = invs.filter(i=>i.batched&&!i.paid).length;
+  const genBtn = document.getElementById('gen-summary-btn');
+  if(genBtn) genBtn.style.display = batchedCount>0 ? 'inline-flex' : 'none';
+  if(genBtn && batchedCount>0) genBtn.textContent = '📋 生成付款汇总 ('+batchedCount+')';
+
+  const relevant = invs.filter(i=> (showPaid || !i.paid) && i.supplier && (!q || i.supplier.toLowerCase().includes(q)));
+
+  const bySupplier = {};
+  relevant.forEach(i=>{
+    if(!bySupplier[i.supplier]) bySupplier[i.supplier]={all:[],unpaid:[],total:0,overdueTotal:0,maxDays:0};
+    bySupplier[i.supplier].all.push(i);
+    if(!i.paid){
+      bySupplier[i.supplier].unpaid.push(i);
+      bySupplier[i.supplier].total += i.amount;
+      if(i.overdue_days>0){
+        bySupplier[i.supplier].overdueTotal += i.amount;
+        bySupplier[i.supplier].maxDays = Math.max(bySupplier[i.supplier].maxDays, i.overdue_days);
+      }
+    }
+  });
+
+  const grandTotal = r2(Object.values(bySupplier).reduce((s,d)=>s+d.total,0));
+  const sorted = Object.entries(bySupplier).sort((a,b)=>a[0].localeCompare(b[0]));
+
+  document.getElementById('sup-grid').innerHTML = sorted.map(([sup,data])=>{
+    const pct = grandTotal ? Math.round((data.total/grandTotal)*100) : 0;
+    const hasOverdue = data.maxDays > 0;
+    return `<div class="sup-card ${hasOverdue?'overdue':''}" onclick="drillSupplier('${sup.replace(/'/g,"\\'")}')">
+      <div class="sup-card-top">
+        <div>
+          <div class="sup-name">${sup}</div>
+          <div class="sup-meta">${data.unpaid.length} 张未付 · ${data.all.length} 张合计</div>
+        </div>
+        <div>
+          <div class="sup-amount">${fmt(r2(data.total))}</div>
+          <div class="sup-amount-label">未付金额</div>
+        </div>
+      </div>
+      <div class="sup-bar-track"><div class="sup-bar-fill" style="width:${pct}%"></div></div>
+      <div class="sup-footer">
+        <span>${hasOverdue?`最旧逾期 ${data.maxDays} 天`:'无逾期'}</span>
+        ${hasOverdue?`<span class="badge badge-red">逾期 ${data.unpaid.filter(i=>i.overdue_days>0).length} 张</span>`:`<span class="badge badge-green">正常</span>`}
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:#9ca3af;font-size:12px;padding:20px 0">暂无供应商数据</div>';
+}
+
+function drillSupplier(sup){
+  activeSup = sup;
+  document.getElementById('sup-year-view').style.display='none';
+  document.getElementById('sup-detail-view').style.display='block';
+  if(!document.getElementById('page-supplier').classList.contains('active')){
+    switchPage('supplier');
+    document.getElementById('sup-year-view').style.display='none';
+    document.getElementById('sup-detail-view').style.display='block';
+  }
+  renderSupplierDetail();
+}
+
+function backToSupGrid(){
+  activeSup=null;
+  document.getElementById('sup-year-view').style.display='block';
+  document.getElementById('sup-detail-view').style.display='none';
+}
+
+function renderSupplierDetail(){
+  const invs = allInvoices().filter(i=>i.supplier===activeSup);
+  const unpaid = invs.filter(i=>!i.paid);
+  const total = r2(unpaid.reduce((s,i)=>s+i.amount,0));
+
+  document.getElementById('sup-detail-name').textContent = activeSup;
+  document.getElementById('sup-detail-meta').textContent = `${unpaid.length} 张未付 / ${invs.length} 张合计`;
+  document.getElementById('sup-detail-total').textContent = fmt(total);
+
+  const sorted = [...invs].sort((a,b)=>{
+    if(a.paid!==b.paid) return a.paid?1:-1;
+    return (b.overdue_days||0)-(a.overdue_days||0);
+  });
+
+  document.getElementById('sup-detail-tbody').innerHTML = sorted.map(inv=>{
+    const kesc=inv._key.replace(/'/g,"\\'");
+    const od=inv.overdue_days||0;
+    const overdueCell=od>0?'<span class="badge badge-red">'+od+'d</span>':(inv.paid?'—':'<span class="badge badge-green">正常</span>');
+    const editBtn=inv._custom?'<button class="btn" style="height:22px;font-size:10px;padding:0 6px" onclick="openEditInv(\''+kesc+'\')">编辑</button>':'';
+    const rowClass=((!inv.paid&&od>0)?'overdue-row':'')+(inv.paid?' paid-row':'');
+    const batchBtnClass='btn-batch'+(inv.batched?' active':'');
+    const paidBtnClass='btn-paid'+(inv.paid?' active':'');
+    const batchDisabled=inv.paid?'disabled style="opacity:.35;cursor:not-allowed"':'';
+    return '<tr class="'+rowClass+'">'
+      +'<td style="font-family:monospace;font-size:12px;font-weight:600;color:#1e293b">'+(inv.inv_no||'—')+'</td>'
+      +'<td style="font-size:11px;color:#6b7280">'+(inv.category||'—')+'</td>'
+      +'<td style="text-align:right;font-weight:700;font-family:monospace">'+fmt(inv.amount||0)+'</td>'
+      +'<td style="font-size:11px">'+(inv.inv_date||'—')+'</td>'
+      +'<td style="text-align:center">'+overdueCell+'</td>'
+      +'<td><input type="text" value="'+(inv.voucher||'')+'" placeholder="P26-..." style="width:100px;height:24px;font-size:11px;border:1px solid #e2e8f0;border-radius:4px;padding:0 5px" onchange="setState(\''+kesc+'\',{voucher:this.value});renderSupplierDetail()"></td>'
+      +'<td style="text-align:center"><button class="'+batchBtnClass+'" onclick="toggleBatch(\''+kesc+'\')" '+batchDisabled+'>'+(inv.batched?'✓ 已选':'准备付款')+'</button></td>'
+      +'<td style="text-align:center"><button class="'+paidBtnClass+'" onclick="togglePaid(\''+kesc+'\')">'+(inv.paid?'✓ 已付':'已付款')+'</button></td>'
+      +'<td class="no-print" style="text-align:center">'+editBtn+'</td>'
+      +'</tr>';
+  }).join('');
+
+  document.getElementById('sup-detail-footer').textContent = `${invs.length} 张发票 · 未付 ${fmt(total)}`;
+
+  const allBatched=allInvoices().filter(i=>i.batched&&!i.paid);
+  document.getElementById('batch-bar').className='batch-bar'+(allBatched.length?'':' hidden');
+  if(allBatched.length){
+    document.getElementById('batch-count').textContent=allBatched.length+' 张已选';
+    document.getElementById('batch-total').textContent=fmt(r2(allBatched.reduce((s,i)=>s+i.amount,0)));
+  }
+}
+
+// ---- ALL INVOICES（今天新增）----
+function renderAllView(){
+  const today = new Date().toISOString().slice(0,10);
+  const invs = allInvoices().filter(i => i._custom && (i.inv_date === today || i.created_date === today || i._key.includes(today.replace(/-/g,''))));
+
+  const allBatched=allInvoices().filter(i=>i.batched&&!i.paid);
+  document.getElementById('batch-bar').className='batch-bar'+(allBatched.length?'':' hidden');
+  if(allBatched.length){
+    document.getElementById('batch-count').textContent=allBatched.length+' 张已选';
+    document.getElementById('batch-total').textContent=fmt(r2(allBatched.reduce((s,i)=>s+i.amount,0)));
+  }
+
+  if(!invs.length){
+    document.getElementById('all-tbody').innerHTML='<tr><td colspan="10" style="text-align:center;color:#9ca3af;padding:32px;font-size:13px">今天还没有新增发票<br><span style="font-size:11px">点「➕ 新增发票」开始添加</span></td></tr>';
+    document.getElementById('all-footer').textContent='';
+    return;
+  }
+
+  document.getElementById('all-tbody').innerHTML=invs.map(inv=>{
+    const kesc=inv._key.replace(/'/g,"\\'");
+    const od=inv.overdue_days||0;
+    const overdueCell=od>0?'<span class="badge badge-red">'+od+'d</span>':(inv.paid?'—':'<span class="badge badge-green">正常</span>');
+    const editBtn='<button class="btn" style="height:22px;font-size:10px;padding:0 6px" onclick="openEditInv(\''+kesc+'\')">编辑</button>';
+    const rowClass=((!inv.paid&&od>0)?'overdue-row':'')+(inv.paid?' paid-row':'');
+    const batchBtnClass='btn-batch'+(inv.batched?' active':'');
+    const paidBtnClass='btn-paid'+(inv.paid?' active':'');
+    const batchDisabled=inv.paid?'disabled':'';
+    return '<tr class="'+rowClass+'">'
+      +'<td style="font-weight:600;font-size:12px">'+(inv.supplier||'—')+'</td>'
+      +'<td style="font-family:monospace;font-size:12px;font-weight:600;color:#1e293b">'+(inv.inv_no||'—')+'</td>'
+      +'<td style="font-size:11px;color:#6b7280">'+(inv.category||'—')+'</td>'
+      +'<td style="text-align:right;font-weight:700;font-family:monospace">'+fmt(inv.amount||0)+'</td>'
+      +'<td style="font-size:11px">'+(inv.inv_date||'—')+'</td>'
+      +'<td style="text-align:center">'+overdueCell+'</td>'
+      +'<td><input type="text" value="'+(inv.voucher||'')+'" placeholder="P26-..." style="width:100px;height:24px;font-size:11px;border:1px solid #e2e8f0;border-radius:4px;padding:0 5px" onchange="setState(\''+kesc+'\',{voucher:this.value});renderAllView()"></td>'
+      +'<td style="text-align:center"><button class="'+batchBtnClass+'" onclick="toggleBatch(\''+kesc+'\')" '+batchDisabled+'>'+(inv.batched?'✓ 已选':'准备付款')+'</button></td>'
+      +'<td style="text-align:center"><button class="'+paidBtnClass+'" onclick="togglePaid(\''+kesc+'\')">'+(inv.paid?'✓ 已付':'已付款')+'</button></td>'
+      +'<td class="no-print" style="text-align:center">'+editBtn+'</td>'
+      +'</tr>';
+  }).join('');
+
+  const total = r2(invs.reduce((s,i)=>s+i.amount,0));
+  document.getElementById('all-footer').textContent='今天新增 '+invs.length+' 张 · 合计 '+fmt(total);
+}
+
+function togglePaid(key){
+  const inv = allInvoices().find(i=>i._key===key);
+  if(!inv) return;
+  setState(key,{paid:!inv.paid});
+  const activePage = document.querySelector('.page.active')?.id;
+  if(activePage==='page-supplier' && activeSup) renderSupplierDetail();
+  else if(activePage==='page-all') renderAllView();
+  else if(activePage==='page-dashboard') renderDashboard();
+}
+
+function toggleBatch(key){
+  const inv = allInvoices().find(i=>i._key===key);
+  if(!inv||inv.paid) return;
+  setState(key,{batched:!inv.batched});
+  const activePage = document.querySelector('.page.active')?.id;
+  if(activePage==='page-supplier' && activeSup) renderSupplierDetail();
+  else if(activePage==='page-all') renderAllView();
+  const batchedCount = allInvoices().filter(i=>i.batched&&!i.paid).length;
+  const genBtn = document.getElementById('gen-summary-btn');
+  if(genBtn){ genBtn.style.display=batchedCount>0?'inline-flex':'none'; if(batchedCount>0) genBtn.textContent='📋 生成付款汇总 ('+batchedCount+')'; }
+}
+
+function clearBatch(){
+  allInvoices().forEach(i=>{ if(i.batched) setState(i._key,{batched:false}); });
+  renderAllView();
+}
+
+// ---- BATCH SUMMARY ----
+function openBatchSummary(){
+  const batched = allInvoices().filter(i=>i.batched&&!i.paid);
+  if(!batched.length){ alert('请先选择要付款的发票（勾选左边的方格）'); return; }
+  const bySupplier={};
+  batched.forEach(i=>{
+    if(!bySupplier[i.supplier]) bySupplier[i.supplier]=[];
+    bySupplier[i.supplier].push(i);
+  });
+  const total=r2(batched.reduce((s,i)=>s+i.amount,0));
+  const bankTotal=r2((bankBal.pbb||0)+(bankBal.ocbc||0));
+  const sufficient=bankTotal>=total;
+
+  document.getElementById('batch-summary-content').innerHTML=`
+    <div style="background:#f8fafc;border-radius:8px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div><div style="font-size:11px;color:#6b7280">需付总金额</div><div style="font-size:20px;font-weight:700;color:#dc2626">${fmt(total)}</div></div>
+      <div><div style="font-size:11px;color:#6b7280">银行总余额</div><div style="font-size:20px;font-weight:700;color:${sufficient?'#16a34a':'#dc2626'}">${fmt(bankTotal)}</div></div>
+      <div><div style="font-size:11px;color:#6b7280">状态</div><div style="font-size:14px;font-weight:700;color:${sufficient?'#16a34a':'#dc2626'}">${sufficient?'✅ 余额充足':'⚠️ 余额不足'}</div></div>
+    </div>
+    ${Object.entries(bySupplier).sort((a,b)=>a[0].localeCompare(b[0])).map(([sup,invs])=>`
+      <div style="margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:#1e293b;padding:6px 10px;background:#f1f5f9;border-radius:6px 6px 0 0;display:flex;justify-content:space-between">
+          <span>${sup}</span><span style="color:#dc2626">${fmt(r2(invs.reduce((s,i)=>s+i.amount,0)))}</span>
+        </div>
+        ${invs.map(i=>`<div style="display:grid;grid-template-columns:1fr auto auto;padding:5px 10px;border-bottom:1px solid #f1f5f9;font-size:11px;background:#fff;gap:10px">
+          <span style="color:#6b7280">${i.inv_no||'—'} · ${i.category||'—'}</span>
+          <span>${i.inv_date||'—'}</span>
+          <span style="font-weight:700;font-family:monospace">${fmt(i.amount)}</span>
+        </div>`).join('')}
+      </div>`).join('')}`;
+  document.getElementById('batchModal').classList.add('open');
+}
+
+function printBatchSummary(){
+  const w=window.open('','_blank');
+  w.document.write('<html><head><title>付款汇总</title><style>body{font-family:Arial;font-size:11pt}table{width:100%;border-collapse:collapse}td,th{padding:4px 8px;border:1px solid #ccc}th{background:#f0f0f0}</style></head><body>');
+  w.document.write('<h2>Mama Vege — 付款汇总</h2>');
+  w.document.write('<p>打印日期：'+new Date().toLocaleDateString('zh-MY')+'</p>');
+  w.document.write(document.getElementById('batch-summary-content').innerHTML);
+  w.document.write('</body></html>');
+  w.document.close(); w.print();
+}
+
+// ---- ADD/EDIT INVOICE ----
+function openAddInv(){
+  editingKey=null;
+  updateDataLists();
+  document.getElementById('invModalTitle').textContent='➕ 新增发票';
+  document.getElementById('fi_del').style.display='none';
+  ['fi_supplier','fi_invno','fi_cat','fi_amount','fi_term','fi_invdate','fi_voucher'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fi_paid').checked=false;
+  document.getElementById('invModal').classList.add('open');
+}
+
+function openEditInv(key){
+  const inv=allInvoices().find(i=>i._key===key); if(!inv) return;
+  editingKey=key; updateDataLists();
+  document.getElementById('invModalTitle').textContent='✏️ 编辑发票';
+  document.getElementById('fi_del').style.display='inline-flex';
+  document.getElementById('fi_supplier').value=inv.supplier||'';
+  document.getElementById('fi_invno').value=inv.inv_no||'';
+  document.getElementById('fi_cat').value=inv.category||'';
+  document.getElementById('fi_amount').value=inv.amount||'';
+  document.getElementById('fi_term').value=inv.term||0;
+  document.getElementById('fi_invdate').value=inv.inv_date||'';
+  document.getElementById('fi_voucher').value=inv.voucher||'';
+  document.getElementById('fi_paid').checked=!!inv.paid;
+  document.getElementById('invModal').classList.add('open');
+}
+
+function saveInv(){
+  const supplier=document.getElementById('fi_supplier').value.trim().toUpperCase();
+  const inv_no=document.getElementById('fi_invno').value.trim();
+  const amount=parseFloat(document.getElementById('fi_amount').value)||0;
+  if(!supplier||!inv_no||!amount){alert('请填写供应商、发票号码和金额');return;}
+  const term=parseInt(document.getElementById('fi_term').value)||0;
+  const inv_date=document.getElementById('fi_invdate').value;
+  let due_date='', overdue_days=0;
+  if(inv_date&&term>=0){
+    const d=new Date(inv_date); d.setDate(d.getDate()+term);
+    due_date=d.toISOString().slice(0,10);
+    const today=new Date(); today.setHours(0,0,0,0);
+    overdue_days=Math.max(0,Math.floor((today-d)/86400000));
+  }
+  const newInv={_key:editingKey||uid(),_custom:true,sheet:'custom',
+    created_date: editingKey ? (customInvs.find(i=>i._key===editingKey)?.created_date || new Date().toISOString().slice(0,10)) : new Date().toISOString().slice(0,10),
+    supplier,inv_no,
+    category:document.getElementById('fi_cat').value.trim(),amount,term,inv_date,due_date,overdue_days,
+    voucher:document.getElementById('fi_voucher').value.trim(),paid:document.getElementById('fi_paid').checked};
+  if(editingKey){
+    const idx=customInvs.findIndex(i=>i._key===editingKey);
+    if(idx>=0) customInvs[idx]=newInv;
+  } else { customInvs.push(newInv); }
+  saveData(); closeModal('invModal');
+  if(activeSup) renderSupplierDetail(); else { renderAllView(); renderSupplierView(); }
+}
+
+function deleteInv(){
+  if(!editingKey||!confirm('确定删除此发票？')) return;
+  customInvs=customInvs.filter(i=>i._key!==editingKey);
+  saveData(); closeModal('invModal');
+  if(activeSup) renderSupplierDetail(); else { renderAllView(); renderSupplierView(); }
+}
+
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+function startBankEdit(bank){
+  const disp = document.getElementById('disp-'+bank);
+  const inp = document.getElementById('edit-'+bank);
+  if(!disp||!inp) return;
+  disp.style.display='none';
+  inp.style.display='inline-block';
+  inp.focus(); inp.select();
+}
+
+async function manualSave(){
+  ['main','summaries','master'].forEach(k=>_pending[k]=true);
+  const b=event.target; const o=b.textContent;
+  const ok=await flushAll();
+  b.textContent=ok?'✅ Saved!':'❌ 失败'; b.classList.add('flash');
+  setTimeout(()=>{ b.textContent=o; b.classList.remove('flash'); },1500);
+}
+
+// ---- LIST PAGE ----
+function renderListPage(){
+  const picker = document.getElementById('list-date-picker');
+  if(picker && activeListDate) picker.value = activeListDate;
+  if(!activeListDate || !summaries[activeListDate]){
+    document.getElementById('list-detail').innerHTML='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:40px;text-align:center;color:#9ca3af;font-size:13px">📅 请选择上方日期查看付款记录</div>';
+    const addBtn = document.getElementById('list-add-btn');
+    if(addBtn) addBtn.style.display='none';
+    return;
+  }
+  const addBtn = document.getElementById('list-add-btn');
+  if(addBtn) addBtn.style.display='inline-flex';
+  renderListDetail();
+}
+
+function onListDatePick(){
+  const d = document.getElementById('list-date-picker').value;
+  if(!d) return;
+  activeListDate = d;
+  if(!summaries[d]) summaries[d] = {items:[]};
+  saveSummaries();
+  renderListPage();
+}
+
+function renderListDetail(){
+  if(!activeListDate || !summaries[activeListDate]){
+    document.getElementById('list-detail').innerHTML='<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:40px;text-align:center;color:#9ca3af;font-size:13px">📅 请选择上方日期查看付款记录</div>';
+    return;
+  }
+  const items = summaries[activeListDate].items||[];
+  const total = r2(items.reduce((s,i)=>s+(i.amount||0),0));
+
+  const grouped = {};
+  items.forEach((item, idx) => {
+    const vKey = item.voucher || ('__no_voucher_'+idx);
+    if(!grouped[vKey]){
+      grouped[vKey] = { voucher: item.voucher||'', supplier: item.supplier, amount: 0, bank: item.bank||'', paid: item.paid||false, indices:[] };
+    }
+    grouped[vKey].amount = r2(grouped[vKey].amount + (item.amount||0));
+    grouped[vKey].indices.push(idx);
+    if(!grouped[vKey].bank && item.bank) grouped[vKey].bank = item.bank;
+  });
+
+  const rows = Object.entries(grouped).map(([vKey, grp])=>{
+    const paid = grp.paid||false;
+    return '<tr style="border-bottom:1px solid #f1f5f9;'+(paid?'opacity:.45;background:#f6fef9':'')+'">'
+      +'<td style="padding:7px 10px;font-family:monospace;font-size:11px;font-weight:600;color:#1e40af">'+(grp.voucher||'—')+'</td>'
+      +'<td style="padding:7px 10px;font-weight:600">'+(grp.supplier||'—')+'</td>'
+      +'<td style="padding:7px 10px;text-align:right;font-family:monospace;font-weight:700">'+fmt(grp.amount)+'</td>'
+      +'<td style="padding:7px 10px"><input type="text" value="'+(grp.bank||'')+'" placeholder="" style="width:140px;height:24px;font-size:11px;border:1px solid #e2e8f0;border-radius:4px;padding:0 5px" onchange="updateListGroupBank(\''+vKey.replace(/'/g,"\\'")+'\',this.value)"></td>'
+      +'<td style="padding:7px 10px;text-align:center"><div class="tick-box'+(paid?' checked':'')+'" onclick="toggleListGroupPaid(\''+vKey.replace(/'/g,"\\'")+'\')" style="display:inline-flex">'+(paid?'✓':'')+'</div></td>'
+      +'</tr>';
+  }).join('') || '<tr><td colspan="5" style="padding:20px;text-align:center;color:#9ca3af">暂无发票</td></tr>';
+
+  document.getElementById('list-detail').innerHTML =
+    `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden">
+      <div style="background:#f8fafc;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e8f0">
+        <span style="font-size:13px;font-weight:700;color:#1e293b">${activeListDate}</span>
+        <span style="font-family:monospace;font-weight:700;color:#dc2626">${fmt(total)}</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:#f8fafc">
+            <th style="padding:7px 10px;text-align:left;font-weight:600;color:#475569;border-bottom:1px solid #e2e8f0">Voucher No.</th>
+            <th style="padding:7px 10px;text-align:left;font-weight:600;color:#475569;border-bottom:1px solid #e2e8f0">Supplier</th>
+            <th style="padding:7px 10px;text-align:right;font-weight:600;color:#475569;border-bottom:1px solid #e2e8f0">Amount (RM)</th>
+            <th style="padding:7px 10px;text-align:left;font-weight:600;color:#475569;border-bottom:1px solid #e2e8f0">Bank</th>
+            <th style="padding:7px 10px;text-align:center;font-weight:600;color:#475569;border-bottom:1px solid #e2e8f0;width:70px">已付款</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+          <tfoot><tr style="background:#f0fdf4;font-weight:700">
+            <td colspan="2" style="padding:8px 10px">合计 TOTAL</td>
+            <td style="padding:8px 10px;text-align:right;font-family:monospace;color:#16a34a">${fmt(total)}</td>
+            <td colspan="2"></td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>`;
+}
+
+function updateListGroupBank(vKey, val){
+  if(!activeListDate||!summaries[activeListDate]) return;
+  const items = summaries[activeListDate].items;
+  items.forEach((item,idx)=>{
+    if((item.voucher||('__no_voucher_'+idx))===vKey) item.bank=val;
+  });
+  saveSummaries();
+}
+
+function toggleListGroupPaid(vKey){
+  if(!activeListDate||!summaries[activeListDate]) return;
+  const items = summaries[activeListDate].items;
+  const groupItems = items.filter((item,idx)=>(item.voucher||('__no_voucher_'+idx))===vKey);
+  const newPaid = !groupItems[0]?.paid;
+  items.forEach((item,idx)=>{
+    if((item.voucher||('__no_voucher_'+idx))===vKey){
+      item.paid = newPaid;
+      if(item._key){
+        if(item._key.startsWith('sum_') && !customInvs.find(c=>c._key===item._key)){
+          customInvs.push({
+            _key: item._key, _custom: true, sheet: 'custom',
+            supplier: item.supplier||'', inv_no: item.inv_no||'',
+            category: item.category||'', amount: item.amount||0,
+            inv_date: activeListDate, voucher: item.voucher||'',
+            bank: item.bank||'', paid: newPaid,
+            created_date: activeListDate
+          });
+        }
+        setState(item._key, {paid: newPaid});
+        const ci = customInvs.find(i=>i._key===item._key);
+        if(ci) ci.paid = newPaid;
+      }
+    }
+  });
+  saveSummaries();
+  saveData();
+  renderListDetail();
+  if(activeSup) renderSupplierDetail();
+}
+
+function listPrint(){
+  if(!activeListDate){ alert('请先选择一个日期'); return; }
+  activeSummaryDate = activeListDate;
+  summaryPrint();
+}
+
+// ===================== PAYMENT SUMMARY =====================
+function renderSummaryPage(){
+  const dates = Object.keys(summaries).sort().reverse();
+  const pillsEl = document.getElementById('summary-date-pills');
+  pillsEl.innerHTML = dates.map(d=>`<span style="background:${activeSummaryDate===d?'#2563eb':'#eff6ff'};color:${activeSummaryDate===d?'#fff':'#1e40af'};border:1px solid ${activeSummaryDate===d?'#2563eb':'#bfdbfe'};border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer" onclick="selectSummaryDate('${d}')">${d}</span>`).join('');
+
+  if(!activeSummaryDate || !summaries[activeSummaryDate]){
+    document.getElementById('summary-main').style.display='none';
+    document.getElementById('summary-empty').style.display='block';
+    return;
+  }
+  document.getElementById('summary-main').style.display='block';
+  document.getElementById('summary-empty').style.display='none';
+  document.getElementById('summary-date-label').textContent='📋 '+activeSummaryDate;
+
+  const items = summaries[activeSummaryDate].items || [];
+  const total = r2(items.reduce((s,i)=>s+(i.amount||0),0));
+  document.getElementById('summary-grand-total').textContent = fmt(total);
+  document.getElementById('summary-total-bar').textContent = fmt(total);
+
+  if(!items.length){
+    document.getElementById('summary-tbody').innerHTML='<div style="padding:20px;text-align:center;color:#9ca3af;font-size:12px">暂无发票，点「➕ 添加发票」</div>';
+    return;
+  }
+
+  const grouped = {};
+  items.forEach((item, idx) => {
+    const key = item.voucher || ('__no_voucher_'+idx);
+    if(!grouped[key]){
+      grouped[key] = { voucher: item.voucher||'', supplier: item.supplier, amount: 0, bank: item.bank||'', indices: [] };
+    }
+    grouped[key].amount = r2(grouped[key].amount + (item.amount||0));
+    grouped[key].indices.push(idx);
+    if(grouped[key].supplier !== item.supplier && grouped[key].indices.length > 1){
+      grouped[key].supplier = grouped[key].supplier + ' / ' + item.supplier;
+    }
+    if(!grouped[key].bank && item.bank) grouped[key].bank = item.bank;
+  });
+
+  const rows = Object.entries(grouped).map(([vKey, grp]) => {
+    const vesc=vKey.replace(/'/g,"\\'");
+    return '<div style="display:grid;grid-template-columns:140px 240px 160px 20px 220px 36px;padding:7px 12px;border-bottom:1px solid #f1f5f9;align-items:center;font-size:12px;min-width:820px">'
+      +'<div style="font-family:monospace;font-size:11px;font-weight:600;color:#1e40af">'+(grp.voucher||'—')+'</div>'
+      +'<div style="font-weight:600">'+(grp.supplier||'—')+'</div>'
+      +'<div style="text-align:right;font-family:monospace;font-weight:700">'+fmt(grp.amount)+'</div>'
+      +'<div></div>'
+      +'<div><input type="text" value="'+(grp.bank||'')+'" placeholder="" style="width:200px;height:24px;font-size:11px;border:1px solid #e2e8f0;border-radius:4px;padding:0 5px" onchange="updateSummaryGroupBank(\''+vesc+'\',this.value)"></div>'
+      +'<div style="text-align:center"><button class="btn danger" style="height:22px;font-size:10px;padding:0 6px" onclick="removeSummaryGroup(\''+vesc+'\')">×</button></div>'
+      +'</div>';
+  }).join('');
+
+  document.getElementById('summary-tbody').innerHTML = rows;
+}
+
+function confirmAllPaid(){
+  if(!activeSummaryDate||!summaries[activeSummaryDate]) return;
+  const items = summaries[activeSummaryDate].items;
+  const unpaid = items.filter(i=>!i.paid);
+  if(!unpaid.length){ alert('这份汇总的所有发票已经标记为付款了！'); return; }
+  if(!confirm(`确认把「${activeSummaryDate}」汇总里的全部 ${items.length} 张发票标记为已付款？\n此操作会同步更新 By Supplier 的付款状态。`)) return;
+  items.forEach(item=>{
+    item.paid = true;
+    if(item._key){
+      if(item._key.startsWith('sum_') && !customInvs.find(c=>c._key===item._key)){
+        customInvs.push({
+          _key: item._key, _custom: true, sheet: 'custom',
+          supplier: item.supplier||'', inv_no: item.inv_no||'',
+          category: item.category||'', amount: item.amount||0,
+          inv_date: activeSummaryDate, voucher: item.voucher||'',
+          bank: item.bank||'', paid: true,
+          created_date: activeSummaryDate
+        });
+      }
+      setState(item._key, {paid: true});
+      const ci = customInvs.find(i=>i._key===item._key);
+      if(ci) ci.paid = true;
+    }
+  });
+  saveSummaries();
+  saveData();
+  renderSummaryPage();
+  renderDashboard();
+  alert(`✅ 已确认全部 ${items.length} 张发票付款完成！`);
+}
+
+function sortSummaryByVoucher(){
+  if(!activeSummaryDate||!summaries[activeSummaryDate]) return;
+  summaries[activeSummaryDate].items.sort((a,b)=>(a.voucher||'').localeCompare(b.voucher||''));
+  saveSummaries();
+  renderSummaryPage();
+}
+
+function selectSummaryDate(d){
+  activeSummaryDate = d;
+  renderSummaryPage();
+}
+
+function summaryNewDate(){
+  const d = prompt('新建付款汇总日期（YYYY-MM-DD）：', new Date().toISOString().slice(0,10));
+  if(!d || !/^\d{4}-\d{2}-\d{2}$/.test(d)){ alert('格式不对，请用 YYYY-MM-DD'); return; }
+  if(!summaries[d]) summaries[d] = {items:[]};
+  activeSummaryDate = d;
+  saveSummaries();
+  renderSummaryPage();
+}
+
+async function summarySave(){
+  _pending['summaries']=true;
+  const b=event.target; const o=b.textContent;
+  const ok=await flushAll();
+  b.textContent=ok?'✅ Saved!':'❌ 失败'; b.classList.add('flash');
+  setTimeout(()=>{b.textContent=o;b.classList.remove('flash');},1500);
+}
+
+function summaryDelete(){
+  if(!activeSummaryDate||!confirm('确定删除「'+activeSummaryDate+'」的付款汇总？')) return;
+  delete summaries[activeSummaryDate];
+  activeSummaryDate = Object.keys(summaries).sort().reverse()[0] || null;
+  saveSummaries();
+  renderSummaryPage();
+}
+
+function summaryAddInv(){
+  const activePage = document.querySelector('.page.active')?.id;
+  if(activePage==='page-list' && activeListDate){
+    activeSummaryDate = activeListDate;
+  } else if(!activeSummaryDate){
+    summaryNewDate();
+    if(!activeSummaryDate) return;
+  }
+  document.getElementById('sa_supplier').value='';
+  document.getElementById('sa_invno').value='';
+  document.getElementById('sa_amount').value='';
+  document.getElementById('sa_voucher').value='';
+  document.getElementById('sa_bank').value='';
+  document.getElementById('summaryAddModal').classList.add('open');
+  setTimeout(()=>document.getElementById('sa_supplier').focus(),100);
+}
+
+function saveSummaryAddModal(){
+  const supplier = document.getElementById('sa_supplier').value.trim().toUpperCase();
+  const inv_no = document.getElementById('sa_invno').value.trim();
+  const amount = parseFloat(document.getElementById('sa_amount').value)||0;
+  if(!supplier||!inv_no||!amount){ alert('请填写供应商、发票号码和金额'); return; }
+  summaries[activeSummaryDate].items.push({
+    _key: 'sum_'+Date.now(),
+    supplier, inv_no, amount,
+    voucher: document.getElementById('sa_voucher').value.trim(),
+    bank: document.getElementById('sa_bank').value.trim(),
+    paid: false
+  });
+  saveSummaries();
+  closeModal('summaryAddModal');
+  const activePage = document.querySelector('.page.active')?.id;
+  if(activePage==='page-list') renderListPage();
+  else renderSummaryPage();
+}
+
+function updateSummaryGroupBank(vKey, val){
+  if(!activeSummaryDate) return;
+  const items = summaries[activeSummaryDate].items;
+  items.forEach(item => {
+    if((item.voucher || ('__no_voucher_'+items.indexOf(item))) === vKey){
+      item.bank = val;
+    }
+  });
+  saveSummaries();
+}
+
+function removeSummaryGroup(vKey){
+  if(!activeSummaryDate||!confirm('确定移除此项目？')) return;
+  const items = summaries[activeSummaryDate].items;
+  summaries[activeSummaryDate].items = items.filter((item, idx) => {
+    return (item.voucher || ('__no_voucher_'+idx)) !== vKey;
+  });
+  saveSummaries();
+  renderSummaryPage();
+}
+
+function summaryPrint(){
+  if(!activeSummaryDate){ alert('请先选择一份汇总'); return; }
+  const items = summaries[activeSummaryDate].items||[];
+  const total = r2(items.reduce((s,i)=>s+(i.amount||0),0));
+  const w=window.open('','_blank');
+  w.document.write('<html><head><title>付款汇总 '+activeSummaryDate+'</title>');
+  w.document.write('<style>body{font-family:Arial;font-size:10pt}table{width:100%;border-collapse:collapse}td,th{padding:5px 8px;border:1px solid #ccc;font-size:10pt}th{background:#f0f0f0}h2{margin-bottom:5px}p{color:#555;font-size:9pt;margin-bottom:10px}</style></head><body>');
+  w.document.write('<h2>Mama Vege — 付款汇总</h2><p>日期：'+activeSummaryDate+' · 打印：'+new Date().toLocaleDateString('zh-MY')+'</p>');
+  w.document.write('<table><thead><tr><th>Supplier</th><th>Invoice No.</th><th style="text-align:right">Amount (RM)</th><th>Voucher No.</th><th>Bank</th></tr></thead><tbody>');
+  items.forEach(i=>{
+    w.document.write('<tr><td>'+i.supplier+'</td><td>'+i.inv_no+'</td><td style="text-align:right;font-family:monospace">'+fmt(i.amount)+'</td><td>'+(i.voucher||'')+'</td><td>'+(i.bank||'')+'</td></tr>');
+  });
+  w.document.write('<tr style="font-weight:bold"><td colspan="2">合计 TOTAL</td><td style="text-align:right;font-family:monospace">'+fmt(total)+'</td><td colspan="2"></td></tr>');
+  w.document.write('</tbody></table></body></html>');
+  w.document.close(); w.print();
+}
+
+function generateSummaryFromBatch(){
+  const batched = allInvoices().filter(i=>i.batched&&!i.paid);
+  if(!batched.length){ alert('请先在 By Supplier 勾选「准备付款」的发票'); return; }
+  const d = new Date().toISOString().slice(0,10);
+  if(!summaries[d]) summaries[d] = {items:[]};
+  const existing = new Set(summaries[d].items.map(i=>i._key));
+  let added = 0;
+  batched.forEach(inv=>{
+    if(!existing.has(inv._key)){
+      summaries[d].items.push({
+        _key: inv._key, supplier: inv.supplier, inv_no: inv.inv_no,
+        amount: inv.amount, voucher: inv.voucher||'', bank:'', paid:false
+      });
+      added++;
+    }
+  });
+  activeSummaryDate = d;
+  saveSummaries();
+  switchPage('summary');
+  if(added===0) alert('所选发票已在今天的汇总中');
+  else alert('已将 '+added+' 张发票加入「'+d+'」付款汇总');
+}
+
+// ---- SETTINGS ----
+function renderSettingsPage(){
+  const supList = document.getElementById('settings-supplier-list');
+  supList.innerHTML = masterSuppliers.map((s,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;font-size:12px">
+      <span>${s}</span>
+      <button class="btn danger" style="height:22px;font-size:10px;padding:0 6px" onclick="removeSettingsSupplier(${i})">×</button>
+    </div>`).join('') || '<div style="padding:12px;color:#9ca3af;font-size:12px;text-align:center">暂无供应商</div>';
+
+  const catList = document.getElementById('settings-category-list');
+  catList.innerHTML = masterCategories.map((c,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 12px;border-bottom:1px solid #f1f5f9;font-size:12px">
+      <span>${c}</span>
+      <button class="btn danger" style="height:22px;font-size:10px;padding:0 6px" onclick="removeSettingsCategory(${i})">×</button>
+    </div>`).join('') || '<div style="padding:12px;color:#9ca3af;font-size:12px;text-align:center">暂无 Category</div>';
+
+  updateDataLists();
+}
+
+function updateDataLists(){
+  const supDl = document.getElementById('supplier-list');
+  const catDl = document.getElementById('cat-list');
+  if(supDl) supDl.innerHTML = masterSuppliers.map(s=>`<option value="${s}">`).join('');
+  if(catDl) catDl.innerHTML = masterCategories.map(c=>`<option value="${c}">`).join('');
+}
+
+function addSettingsSupplier(){
+  const inp = document.getElementById('new-supplier-input');
+  const val = inp.value.trim().toUpperCase();
+  if(!val) return;
+  if(!masterSuppliers.includes(val)) masterSuppliers.push(val);
+  masterSuppliers.sort();
+  saveMaster(); inp.value='';
+  renderSettingsPage();
+}
+
+function removeSettingsSupplier(idx){
+  masterSuppliers.splice(idx,1);
+  saveMaster(); renderSettingsPage();
+}
+
+function addSettingsCategory(){
+  const inp = document.getElementById('new-category-input');
+  const val = inp.value.trim().toUpperCase();
+  if(!val) return;
+  if(!masterCategories.includes(val)) masterCategories.push(val);
+  masterCategories.sort();
+  saveMaster(); inp.value='';
+  renderSettingsPage();
+}
+
+function removeSettingsCategory(idx){
+  masterCategories.splice(idx,1);
+  saveMaster(); renderSettingsPage();
+}
+
+// ---- EXPORT / IMPORT ----
+function exportData(){
+  const data = {baseInvs: BASE_INVS, invState, customInvs, bankBal, summaries, masterSuppliers, masterCategories};
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download='MamaVege_AP_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+}
+
+async function importData(){
+  try{
+    const d=JSON.parse(document.getElementById('importTxt').value.trim());
+    if(!d.invState && !d.customInvs && !d.summaries && !d.baseInvs){ alert('格式有误：找不到 AP 数据字段'); return; }
+    if(!confirm('导入会覆盖云端现有 AP 数据，确定继续？')) return;
+    if(d.baseInvs) BASE_INVS=d.baseInvs;
+    if(d.invState) invState=d.invState;
+    if(d.customInvs) customInvs=d.customInvs;
+    if(d.bankBal) bankBal=d.bankBal;
+    if(d.summaries) summaries=d.summaries;
+    if(d.masterSuppliers) masterSuppliers=d.masterSuppliers;
+    if(d.masterCategories) masterCategories=d.masterCategories;
+    ['main','summaries','master'].forEach(k=>_pending[k]=true);
+    if(d.baseInvs) _pending['base']=true;
+    const ok=await flushAll();
+    closeModal('importModal'); renderDashboard();
+    document.getElementById('setup-banner').classList.remove('show');
+    alert(ok?'✅ 导入成功，已写入云端！':'⚠️ 导入完成但云端保存失败，请点 Save 重试');
+  }catch(e){alert('格式有误');}
+}
+
+// ---- INIT ----
+MVAuth.init({ module:'finance', minRole:'editor', base:'../', title:'AP 付款管理', moduleName:'财务 Finance' }).then(async ctx=>{
+  supa=ctx.client; EMAIL=ctx.email;
+  document.getElementById('nav-user').textContent=ctx.email;
+  await loadAll();
+  renderDashboard();
+});
+</script>
+</body>
+</html>
