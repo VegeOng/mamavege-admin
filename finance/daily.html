@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MamaVege | 每日财务追踪</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --green:#166534;--green2:#22c55e;--green-light:#dcfce7;--green-border:#bbf7d0;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-border:#fde68a;
+  --blue:#2563eb;--blue-bg:#eff6ff;--blue-border:#bfdbfe;
+  --red:#dc2626;--red-bg:#fef2f2;
+  --text:#1a1a1a;--muted:#6b7280;--border:#e5e7eb;--card:#ffffff;--bg:#f4f6f3;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+.mv-top{overflow:hidden}
+.mv-top-main{display:flex;justify-content:space-between;align-items:center;padding:12px 24px;background:#166534}
+.mv-top-left{display:flex;align-items:center;gap:12px}
+.mv-top-logo{height:34px;background:#fff;border-radius:8px;padding:3px 8px;display:flex;align-items:center;text-decoration:none}
+.mv-top-logo img{height:26px}
+.mv-top-sep{width:1px;height:24px;background:rgba(255,255,255,.2)}
+.mv-top-tool{color:#fff;font-size:14px;font-weight:700;letter-spacing:.3px}
+.mv-top-right{display:flex;align-items:center;gap:12px}
+.mv-top-btn{background:rgba(255,255,255,.12);border:none;color:rgba(255,255,255,.8);padding:5px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:none}
+.mv-top-btn:hover{background:rgba(255,255,255,.2);color:#fff}
+.mv-top-sub{display:flex;justify-content:space-between;align-items:center;padding:5px 24px;background:#15532d;color:rgba(255,255,255,.6);font-size:11px}
+
+.wrap{max-width:1100px;margin:0 auto;padding:1.5rem 1.5rem 3rem;}
+
+.hero{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.hero-left{}
+.hero-date{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+.hero-title{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--green);}
+.status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;}
+.status-ok{background:var(--green-light);color:var(--green);border:1px solid var(--green-border);}
+.status-miss{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);}
+
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:700px){.kpi-row{grid-template-columns:repeat(2,1fr);}}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.kpi-val{font-size:22px;font-weight:700;margin-bottom:2px;}
+.kpi-sub{font-size:11px;color:var(--muted);}
+.kpi.cash .kpi-val{color:var(--green);}
+.kpi.sales .kpi-val{color:var(--blue);}
+.kpi.opex .kpi-val{color:var(--amber);}
+.kpi.profit .kpi-val{color:var(--green);}
+
+.main-row{display:grid;grid-template-columns:1fr 340px;gap:18px;margin-bottom:24px;}
+@media(max-width:800px){.main-row{grid-template-columns:1fr;}}
+
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.form-card h3{font-size:14px;font-weight:700;color:#111;margin-bottom:18px;}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;display:block;}
+.form-input{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;font-family:inherit;color:var(--text);background:#fff;transition:border-color .15s;}
+.form-input:focus{outline:none;border-color:var(--green2);}
+.form-input::placeholder{color:#c0c4cc;}
+.form-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.save-btn{width:100%;background:var(--green);color:#fff;border:none;padding:11px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;transition:background .15s;}
+.save-btn:hover{background:#14532d;}
+.save-btn:disabled{background:#9ca3af;cursor:not-allowed;}
+.save-status{font-size:12px;color:var(--muted);text-align:center;margin-top:8px;min-height:18px;}
+
+.sales-fetch-row{background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.sales-fetch-label{font-size:12px;color:var(--blue);font-weight:600;}
+.sales-fetch-val{font-size:15px;font-weight:700;color:var(--blue);}
+
+.info-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.04);display:flex;flex-direction:column;gap:14px;}
+.info-block{}
+.info-block-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.info-block p{font-size:12px;color:var(--text);line-height:1.7;}
+.formula-box{background:#f8fdf8;border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green);font-family:'DM Mono',monospace;line-height:1.8;}
+
+.charts-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
+@media(max-width:900px){.charts-grid{grid-template-columns:1fr;}}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.chart-title{font-size:13px;font-weight:700;color:#111;margin-bottom:14px;}
+.chart-wrap{position:relative;height:180px;}
+
+.history-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.history-title{font-size:13px;font-weight:700;color:#111;margin-bottom:14px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;padding:7px 10px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.05em;}
+td{padding:8px 10px;border-bottom:1px solid #f3f4f6;color:var(--text);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafafa;}
+.td-green{color:var(--green);font-weight:600;}
+.td-amber{color:var(--amber);font-weight:600;}
+.td-blue{color:var(--blue);font-weight:600;}
+
+#app{display:none;}
+</style>
+</head>
+<body>
+
+<div id="app">
+<div class="mv-top">
+  <div class="mv-top-main">
+    <div class="mv-top-left">
+      <a href="../index.html" class="mv-top-logo"><img src="../Mamavege_Logo.png" alt="MamaVege"></a>
+      <div class="mv-top-sep"></div>
+      <span class="mv-top-tool">📊 每日财务追踪</span>
+    </div>
+    <div class="mv-top-right">
+      <a class="mv-top-btn" href="index.html">← Finance</a>
+      <span id="top-user" style="color:rgba(255,255,255,.85);font-size:13px;font-weight:600"></span>
+      <button class="mv-top-btn" onclick="MVAuth.logout()">登出</button>
+    </div>
+  </div>
+  <div class="mv-top-sub">
+    <span class="mv-top-date"></span>
+    <span>MamaVege Management Platform · 财务日报</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-date" id="hero-date"></div>
+      <div class="hero-title">每日财务追踪</div>
+    </div>
+    <span class="status-badge status-miss" id="today-status">⏳ 今日未填</span>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi cash">
+      <div class="kpi-label">总现金</div>
+      <div class="kpi-val" id="kpi-cash">—</div>
+      <div class="kpi-sub">PBB + OCBC</div>
+    </div>
+    <div class="kpi sales">
+      <div class="kpi-label">今日销售</div>
+      <div class="kpi-val" id="kpi-sales">拉取中…</div>
+      <div class="kpi-sub">来自 Sales Dashboard</div>
+    </div>
+    <div class="kpi opex">
+      <div class="kpi-label">今日开支</div>
+      <div class="kpi-val" id="kpi-opex">—</div>
+      <div class="kpi-sub">当天付出</div>
+    </div>
+    <div class="kpi profit">
+      <div class="kpi-label">毛利估算</div>
+      <div class="kpi-val" id="kpi-profit">—</div>
+      <div class="kpi-sub">销售额 × 上月毛利率</div>
+    </div>
+  </div>
+
+  <div class="main-row">
+    <div class="form-card">
+      <h3>📝 今日填写</h3>
+      <div class="sales-fetch-row">
+        <span class="sales-fetch-label">📈 今日销售（自动拉取）</span>
+        <span class="sales-fetch-val" id="form-sales">—</span>
+      </div>
+      <div class="form-row2">
+        <div class="form-group">
+          <label class="form-label">PBB 余额 (RM)</label>
+          <input class="form-input" id="f-pbb" type="number" placeholder="0.00" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label">OCBC 余额 (RM)</label>
+          <input class="form-input" id="f-ocbc" type="number" placeholder="0.00" step="0.01">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">今日开支 (RM)</label>
+        <input class="form-input" id="f-opex" type="number" placeholder="今天实际付出的金额" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">备注（可选）</label>
+        <input class="form-input" id="f-note" type="text" placeholder="例：结清 7 月租金">
+      </div>
+      <button class="save-btn" id="save-btn" onclick="saveToday()">保存今日数据</button>
+      <div class="save-status" id="save-status"></div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-block">
+        <div class="info-block-title">💡 怎么填</div>
+        <p>每天早上打开网银，把 PBB 和 OCBC 的<strong>当前余额</strong>填进来。当天付了什么填<strong>今日开支</strong>，销售额系统自动拉取不用手填。</p>
+      </div>
+      <div class="info-block">
+        <div class="info-block-title">📐 毛利估算公式</div>
+        <div class="formula-box">
+          今日毛利 ≈<br>
+          今日销售额<br>
+          × 上月毛利率%
+        </div>
+        <p style="margin-top:8px;font-size:11px;color:var(--muted);">每月关账后在「月度财务监督」更新毛利率，这里自动用最新值估算。</p>
+      </div>
+      <div class="info-block">
+        <div class="info-block-title">⏰ 建议时间</div>
+        <p>每天早上 9:00 前填完，老板实时看到昨日现金和今日预估。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">💰 现金走势（30天）</div>
+      <div class="chart-wrap"><canvas id="chartCash"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">💸 每日开支（30天）</div>
+      <div class="chart-wrap"><canvas id="chartOpex"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">📈 毛利估算（30天）</div>
+      <div class="chart-wrap"><canvas id="chartProfit"></canvas></div>
+    </div>
+  </div>
+
+  <div class="history-card">
+    <div class="history-title">最近 14 天记录</div>
+    <div style="overflow-x:auto;">
+      <table id="history-table">
+        <thead>
+          <tr>
+            <th>日期</th>
+            <th>PBB (RM)</th>
+            <th>OCBC (RM)</th>
+            <th>总现金</th>
+            <th>今日销售</th>
+            <th>今日开支</th>
+            <th>毛利估算</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody id="history-body">
+          <tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px;">加载中…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script src="../supabase.min.js"></script>
+<script src="../js/auth/auth.js"></script>
+<script>
+const SALES_API = 'https://script.google.com/macros/s/AKfycbwxt23ZB0od7EeBSNvjurKTbkDcM7HLgrWhuoqHc3meKWmhbB0XQzfOdB-X2Pj5O_MY/exec';
+
+let supa, currentUser, todaySales = 0, latestMarginPct = 40, todayKey = '';
+let charts = {};
+
+function fmtRM(n) {
+  if (n == null || isNaN(n)) return '—';
+  if (Math.abs(n) >= 1000000) return 'RM ' + (n/1000000).toFixed(2) + 'M';
+  if (Math.abs(n) >= 1000) return 'RM ' + (n/1000).toFixed(1) + 'K';
+  return 'RM ' + Number(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function fmtRMFull(n) {
+  if (n == null || isNaN(n)) return '—';
+  return 'RM ' + Number(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function parseSheetDate(v) {
+  if (!v) return null;
+  const s = String(v).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s.slice(0,10) + 'T00:00:00');
+  const dm = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (dm) return new Date(+dm[3], +dm[2]-1, +dm[1]);
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
+function getTotalField(r) {
+  for (const k of Object.keys(r)) {
+    if (k.replace(/\s+/g,'').toUpperCase() === 'TOTALRM') return parseFloat(r[k]) || 0;
+  }
+  return 0;
+}
+
+function dateKey(d) { return d.toISOString().slice(0,10); }
+
+function labelDate(s) {
+  const d = new Date(s + 'T00:00:00');
+  return (d.getMonth()+1) + '/' + d.getDate();
+}
+
+// Fetch today's sales from Google Apps Script
+async function fetchTodaySales() {
+  try {
+    const res = await fetch(SALES_API);
+    const json = await res.json();
+    const data = json.data || [];
+    const today = dateKey(new Date());
+    let sum = 0;
+    data.forEach(r => {
+      const d = parseSheetDate(r['PO DATE']);
+      if (d && dateKey(d) === today) sum += getTotalField(r);
+    });
+    todaySales = sum;
+    document.getElementById('form-sales').textContent = fmtRMFull(sum);
+    document.getElementById('kpi-sales').textContent = fmtRM(sum);
+    updateProfitKpi();
+  } catch(e) {
+    document.getElementById('form-sales').textContent = '拉取失败';
+    document.getElementById('kpi-sales').textContent = '—';
+  }
+}
+
+function updateProfitKpi() {
+  const profit = todaySales * latestMarginPct / 100;
+  document.getElementById('kpi-profit').textContent = fmtRM(profit);
+}
+
+// Load today's existing record
+async function loadToday() {
+  const { data } = await supa.from('finance_daily').select('*').eq('date', todayKey).maybeSingle();
+  if (data) {
+    document.getElementById('f-pbb').value  = data.cash_pbb  ?? '';
+    document.getElementById('f-ocbc').value = data.cash_ocbc ?? '';
+    document.getElementById('f-opex').value = data.daily_opex ?? '';
+    document.getElementById('f-note').value = data.note ?? '';
+    const cash = (data.cash_pbb||0) + (data.cash_ocbc||0);
+    document.getElementById('kpi-cash').textContent = fmtRM(cash);
+    document.getElementById('kpi-opex').textContent = fmtRM(data.daily_opex);
+    document.getElementById('today-status').textContent = '✅ 今日已填';
+    document.getElementById('today-status').className = 'status-badge status-ok';
+  }
+}
+
+// Load latest margin from finance_monthly
+async function loadLatestMargin() {
+  const { data } = await supa.from('finance_monthly')
+    .select('month, gross_margin_pct')
+    .not('gross_margin_pct', 'is', null)
+    .order('month', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (data && data.gross_margin_pct > 0) latestMarginPct = data.gross_margin_pct;
+  updateProfitKpi();
+}
+
+// Load 30 days history for charts
+async function loadHistory() {
+  const { data } = await supa.from('finance_daily')
+    .select('*')
+    .order('date', { ascending: false })
+    .limit(30);
+  if (!data || !data.length) {
+    document.getElementById('history-body').innerHTML =
+      '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px;">暂无记录，从今天开始填写吧！</td></tr>';
+    drawCharts([]);
+    return;
+  }
+  const rows = [...data].reverse(); // chronological
+
+  // Draw charts
+  drawCharts(rows);
+
+  // Draw history table (last 14, newest first)
+  const recent = data.slice(0, 14);
+  document.getElementById('history-body').innerHTML = recent.map(r => {
+    const cash = (r.cash_pbb||0) + (r.cash_ocbc||0);
+    const profit = (r.daily_sales||0) * latestMarginPct / 100;
+    return `<tr>
+      <td>${r.date}</td>
+      <td>${fmtRMFull(r.cash_pbb)}</td>
+      <td>${fmtRMFull(r.cash_ocbc)}</td>
+      <td class="td-green">${fmtRMFull(cash)}</td>
+      <td class="td-blue">${fmtRMFull(r.daily_sales)}</td>
+      <td class="td-amber">${fmtRMFull(r.daily_opex)}</td>
+      <td class="td-green">${fmtRMFull(profit > 0 ? profit : null)}</td>
+      <td style="color:var(--muted)">${r.note||''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function drawCharts(rows) {
+  const labels = rows.map(r => labelDate(r.date));
+  const cashData = rows.map(r => (r.cash_pbb||0) + (r.cash_ocbc||0));
+  const opexData = rows.map(r => r.daily_opex||0);
+  const profitData = rows.map(r => (r.daily_sales||0) * latestMarginPct / 100);
+
+  const base = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#9ca3af' } },
+      y: { grid: { color: '#f3f4f6' }, ticks: { font: { size: 10 }, color: '#9ca3af',
+        callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v } }
+    }
+  };
+
+  if (charts.cash) charts.cash.destroy();
+  charts.cash = new Chart(document.getElementById('chartCash'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: cashData,
+        borderColor: '#166534', backgroundColor: 'rgba(22,101,52,.08)',
+        fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#166534'
+      }]
+    },
+    options: { ...base }
+  });
+
+  if (charts.opex) charts.opex.destroy();
+  charts.opex = new Chart(document.getElementById('chartOpex'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: opexData,
+        backgroundColor: 'rgba(217,119,6,.15)',
+        borderColor: '#d97706', borderWidth: 1.5, borderRadius: 4
+      }]
+    },
+    options: { ...base }
+  });
+
+  if (charts.profit) charts.profit.destroy();
+  charts.profit = new Chart(document.getElementById('chartProfit'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data: profitData,
+        borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.08)',
+        fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#22c55e'
+      }]
+    },
+    options: { ...base }
+  });
+}
+
+async function saveToday() {
+  const pbb  = parseFloat(document.getElementById('f-pbb').value)  || 0;
+  const ocbc = parseFloat(document.getElementById('f-ocbc').value) || 0;
+  const opex = parseFloat(document.getElementById('f-opex').value) || 0;
+  const note = document.getElementById('f-note').value.trim();
+
+  const btn = document.getElementById('save-btn');
+  const st  = document.getElementById('save-status');
+  btn.disabled = true; btn.textContent = '保存中…';
+
+  const { error } = await supa.from('finance_daily').upsert({
+    date: todayKey,
+    cash_pbb: pbb, cash_ocbc: ocbc,
+    daily_opex: opex,
+    daily_sales: todaySales || null,
+    note: note || null,
+    updated_by: currentUser,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'date' });
+
+  if (error) {
+    st.textContent = '❌ 保存失败：' + error.message;
+    btn.disabled = false; btn.textContent = '保存今日数据';
+    return;
+  }
+
+  st.textContent = '✅ 已保存 ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
+  btn.disabled = false; btn.textContent = '更新今日数据';
+  document.getElementById('today-status').textContent = '✅ 今日已填';
+  document.getElementById('today-status').className = 'status-badge status-ok';
+  document.getElementById('kpi-cash').textContent = fmtRM(pbb + ocbc);
+  document.getElementById('kpi-opex').textContent = fmtRM(opex);
+  loadHistory();
+}
+
+// Init
+document.querySelectorAll('.mv-top-date').forEach(e =>
+  e.textContent = new Date().toLocaleDateString('zh-CN', {weekday:'short',year:'numeric',month:'short',day:'numeric'}));
+document.getElementById('hero-date').textContent =
+  new Date().toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric',weekday:'long'});
+todayKey = dateKey(new Date());
+
+MVAuth.init({ module:'finance', minRole:'editor', base:'../', title:'每日财务追踪', moduleName:'财务 Finance' }).then(ctx => {
+  supa = ctx.client;
+  currentUser = ctx.email;
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('top-user').textContent = ctx.email;
+  Promise.all([loadToday(), loadLatestMargin(), loadHistory(), fetchTodaySales()]);
+});
+</script>
+</body>
+</html>
