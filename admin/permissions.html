@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MamaVege | 权限管理</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#166534;--green2:#22c55e;--green-light:#dcfce7;--green-border:#bbf7d0;
+  --red:#dc2626;--red-bg:#fef2f2;--red-border:#fecaca;
+  --amber:#d97706;--amber-bg:#fffbeb;
+  --blue:#2563eb;--blue-bg:#eff6ff;--blue-border:#bfdbfe;
+  --text:#1a1a1a;--muted:#6b7280;--border:#e5e7eb;--card:#ffffff;--bg:#f4f6f3;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+.mv-top-main{display:flex;justify-content:space-between;align-items:center;padding:12px 24px;background:#166534}
+.mv-top-left{display:flex;align-items:center;gap:12px}
+.mv-top-logo{height:34px;background:#fff;border-radius:8px;padding:3px 8px;display:flex;align-items:center;text-decoration:none}
+.mv-top-logo img{height:26px}
+.mv-top-sep{width:1px;height:24px;background:rgba(255,255,255,.2)}
+.mv-top-tool{color:#fff;font-size:14px;font-weight:700}
+.mv-top-right{display:flex;align-items:center;gap:12px}
+.mv-top-btn{background:rgba(255,255,255,.12);border:none;color:rgba(255,255,255,.8);padding:5px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:none}
+.mv-top-btn:hover{background:rgba(255,255,255,.2);color:#fff}
+.mv-top-sub{display:flex;justify-content:space-between;align-items:center;padding:5px 24px;background:#15532d;color:rgba(255,255,255,.6);font-size:11px}
+
+.wrap{max-width:900px;margin:0 auto;padding:1.5rem 1.5rem 3rem;}
+
+.page-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.page-title{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--green);}
+.page-sub{font-size:13px;color:var(--muted);margin-top:3px;}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{background:#14532d;}
+.btn-sm{padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;}
+.btn-outline{background:#fff;border:1.5px solid var(--border);color:var(--text);}
+.btn-outline:hover{border-color:#9ca3af;}
+.btn-red{background:var(--red-bg);color:var(--red);border:1.5px solid var(--red-border);}
+.btn-red:hover{background:#fee2e2;}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.stat-val{font-size:22px;font-weight:700;color:var(--green);}
+.stat-label{font-size:11px;color:var(--muted);margin-top:2px;}
+
+.notice{background:var(--amber-bg);border:1px solid #fde68a;border-radius:10px;padding:12px 16px;font-size:12px;color:#92400e;margin-bottom:20px;line-height:1.6;}
+
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead{background:#f9fafb;}
+th{text-align:left;padding:10px 16px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);}
+td{padding:12px 16px;border-bottom:1px solid #f3f4f6;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafafa;}
+
+.email-cell{font-weight:600;color:#111;}
+.email-sub{font-size:11px;color:var(--muted);font-weight:400;}
+
+.mod-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.mod-all{background:#f0fdf4;color:var(--green);border:1px solid var(--green-border);}
+.mod-finance{background:#eff6ff;color:var(--blue);border:1px solid var(--blue-border);}
+.mod-hr{background:#fdf4ff;color:#9333ea;border:1px solid #e9d5ff;}
+.mod-production{background:#fff7ed;color:#ea580c;border:1px solid #fed7aa;}
+.mod-purchasing{background:#f0fdfa;color:#0d9488;border:1px solid #99f6e4;}
+.mod-warehouse{background:#fefce8;color:#ca8a04;border:1px solid #fef08a;}
+
+.role-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.role-admin{background:#fef2f2;color:var(--red);border:1px solid var(--red-border);}
+.role-editor{background:var(--amber-bg);color:var(--amber);border:1px solid #fde68a;}
+.role-viewer{background:#f3f4f6;color:#6b7280;border:1px solid var(--border);}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#fff;border-radius:18px;padding:28px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.18);transform:translateY(12px);transition:transform .2s;}
+.modal-overlay.open .modal{transform:none;}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:4px;}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.form-input,.form-select{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;font-family:inherit;background:#fff;color:var(--text);}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--green2);}
+.form-hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+.modal-actions{display:flex;gap:8px;margin-top:20px;}
+.modal-actions .btn{flex:1;justify-content:center;}
+
+.empty-state{text-align:center;padding:40px;color:var(--muted);}
+.empty-icon{font-size:36px;margin-bottom:10px;}
+
+#app{display:none;}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="mv-top-main">
+  <div class="mv-top-left">
+    <a href="../index.html" class="mv-top-logo"><img src="../Mamavege_Logo.png" alt="MamaVege"></a>
+    <div class="mv-top-sep"></div>
+    <span class="mv-top-tool">🔐 权限管理</span>
+  </div>
+  <div class="mv-top-right">
+    <a class="mv-top-btn" href="../index.html">← 平台首页</a>
+    <span id="top-user" style="color:rgba(255,255,255,.85);font-size:13px;font-weight:600"></span>
+    <button class="mv-top-btn" onclick="MVAuth.logout()">登出</button>
+  </div>
+</div>
+<div class="mv-top-sub">
+  <span class="mv-top-date"></span>
+  <span>MamaVege Management Platform · 仅限系统管理员</span>
+</div>
+
+<div class="wrap">
+  <div class="page-header">
+    <div>
+      <div class="page-title">员工权限管理</div>
+      <div class="page-sub">控制每位员工可以访问哪些模块、拥有什么操作级别</div>
+    </div>
+    <button class="btn btn-green" onclick="openAdd()">＋ 添加权限</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat"><div class="stat-val" id="stat-users">—</div><div class="stat-label">授权员工数</div></div>
+    <div class="stat"><div class="stat-val" id="stat-perms">—</div><div class="stat-label">权限条目总数</div></div>
+    <div class="stat"><div class="stat-val" id="stat-admins">—</div><div class="stat-label">管理员数</div></div>
+  </div>
+
+  <div class="notice">
+    ⚠️ <strong>添加新员工流程：</strong>先在 Supabase → Authentication → Users → Add user 建账号，再在这里添加权限。账号建好后员工才能登录。
+  </div>
+
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>员工邮箱</th>
+          <th>模块</th>
+          <th>权限级别</th>
+          <th>备注</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="perm-tbody">
+        <tr><td colspan="5" class="empty-state">加载中…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">添加权限</div>
+    <div class="modal-sub" id="modal-sub">为员工开通指定模块的访问权限</div>
+
+    <div class="form-group">
+      <label class="form-label">员工邮箱</label>
+      <input class="form-input" id="m-email" type="email" placeholder="employee@mamavege.com">
+      <div class="form-hint" id="email-hint">员工邮箱必须已在 Supabase Auth 中建立账号</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">模块</label>
+      <select class="form-select" id="m-module">
+        <option value="all">🌐 全平台（老板/全模块管理员）</option>
+        <option value="finance">💰 Finance 财务</option>
+        <option value="hr">👥 HR 人事</option>
+        <option value="production">🏭 Production 生产</option>
+        <option value="purchasing">🛒 Purchasing 采购</option>
+        <option value="warehouse">📦 Warehouse 仓库</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">权限级别</label>
+      <select class="form-select" id="m-role">
+        <option value="viewer">👁 只读 — 只能看，不能改</option>
+        <option value="editor" selected>✏️ 编辑 — 可以录入和修改数据</option>
+        <option value="admin">🔑 管理员 — 可以删除和管理权限</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注（可选）</label>
+      <input class="form-input" id="m-note" type="text" placeholder="例：财务部 · 陈美玲">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">取消</button>
+      <button class="btn btn-green" id="modal-save-btn" onclick="savePermission()">保存</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;min-height:16px;" id="modal-status"></div>
+  </div>
+</div>
+
+<script src="../supabase.min.js"></script>
+<script src="../js/auth/auth.js"></script>
+<script>
+let supa, editingId = null;
+
+const MOD_LABELS = {
+  all:'全平台', finance:'Finance 财务', hr:'HR 人事',
+  production:'Production 生产', purchasing:'Purchasing 采购', warehouse:'Warehouse 仓库'
+};
+const MOD_CLASS = {
+  all:'mod-all', finance:'mod-finance', hr:'mod-hr',
+  production:'mod-production', purchasing:'mod-purchasing', warehouse:'mod-warehouse'
+};
+const ROLE_LABELS = { admin:'管理员', editor:'编辑', viewer:'只读' };
+const ROLE_CLASS  = { admin:'role-admin', editor:'role-editor', viewer:'role-viewer' };
+
+async function loadPerms() {
+  const { data, error } = await supa.from('app_permissions').select('*').order('email').order('module');
+  if (error) { document.getElementById('perm-tbody').innerHTML = '<tr><td colspan="5" style="color:red;padding:20px">加载失败：'+error.message+'</td></tr>'; return; }
+
+  const rows = data || [];
+  const emails = new Set(rows.map(r => r.email));
+  const admins = rows.filter(r => r.role === 'admin').length;
+  document.getElementById('stat-users').textContent  = emails.size;
+  document.getElementById('stat-perms').textContent  = rows.length;
+  document.getElementById('stat-admins').textContent = admins;
+
+  if (!rows.length) {
+    document.getElementById('perm-tbody').innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🔐</div>暂无权限记录</div></td></tr>';
+    return;
+  }
+
+  document.getElementById('perm-tbody').innerHTML = rows.map(r => `
+    <tr>
+      <td><div class="email-cell">${r.email}</div></td>
+      <td><span class="mod-badge ${MOD_CLASS[r.module]||'mod-finance'}">${MOD_LABELS[r.module]||r.module}</span></td>
+      <td><span class="role-badge ${ROLE_CLASS[r.role]||'role-viewer'}">${ROLE_LABELS[r.role]||r.role}</span></td>
+      <td style="color:var(--muted);font-size:12px">${r.note||'—'}</td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm btn-outline" onclick="openEdit('${r.id}','${r.email}','${r.module}','${r.role}','${(r.note||'').replace(/'/g,"\\'")}')">修改</button>
+          <button class="btn btn-sm btn-red" onclick="deletePermission('${r.id}','${r.email}','${MOD_LABELS[r.module]||r.module}')">删除</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openAdd() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = '添加权限';
+  document.getElementById('modal-sub').textContent = '为员工开通指定模块的访问权限';
+  document.getElementById('m-email').value = '';
+  document.getElementById('m-email').disabled = false;
+  document.getElementById('email-hint').style.display = '';
+  document.getElementById('m-module').value = 'finance';
+  document.getElementById('m-role').value = 'editor';
+  document.getElementById('m-note').value = '';
+  document.getElementById('modal-status').textContent = '';
+  document.getElementById('modal-save-btn').textContent = '保存';
+  document.getElementById('modal').classList.add('open');
+}
+
+function openEdit(id, email, module, role, note) {
+  editingId = id;
+  document.getElementById('modal-title').textContent = '修改权限';
+  document.getElementById('modal-sub').textContent = '修改该员工的模块或权限级别';
+  document.getElementById('m-email').value = email;
+  document.getElementById('m-email').disabled = true;
+  document.getElementById('email-hint').style.display = 'none';
+  document.getElementById('m-module').value = module;
+  document.getElementById('m-role').value = role;
+  document.getElementById('m-note').value = note;
+  document.getElementById('modal-status').textContent = '';
+  document.getElementById('modal-save-btn').textContent = '更新';
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+async function savePermission() {
+  const email  = document.getElementById('m-email').value.trim().toLowerCase();
+  const module = document.getElementById('m-module').value;
+  const role   = document.getElementById('m-role').value;
+  const note   = document.getElementById('m-note').value.trim();
+
+  if (!email) { document.getElementById('modal-status').textContent = '请填写邮箱'; return; }
+
+  const btn = document.getElementById('modal-save-btn');
+  btn.disabled = true; btn.textContent = '保存中…';
+
+  let error;
+  if (editingId) {
+    ({ error } = await supa.from('app_permissions').update({ module, role, note: note||null }).eq('id', editingId));
+  } else {
+    ({ error } = await supa.from('app_permissions').upsert({ email, module, role, note: note||null }, { onConflict: 'email,module' }));
+  }
+
+  btn.disabled = false; btn.textContent = editingId ? '更新' : '保存';
+
+  if (error) { document.getElementById('modal-status').textContent = '❌ ' + error.message; return; }
+  closeModal();
+  loadPerms();
+}
+
+async function deletePermission(id, email, modLabel) {
+  if (!confirm(`确认删除？\n\n${email}\n模块：${modLabel}\n\n删除后该员工将无法访问此模块。`)) return;
+  const { error } = await supa.from('app_permissions').delete().eq('id', id);
+  if (error) { alert('删除失败：' + error.message); return; }
+  loadPerms();
+}
+
+document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
+document.querySelectorAll('.mv-top-date').forEach(e => e.textContent = new Date().toLocaleDateString('zh-CN',{weekday:'short',year:'numeric',month:'short',day:'numeric'}));
+
+MVAuth.init({ module:'all', minRole:'admin', base:'../', title:'权限管理', moduleName:'权限管理' }).then(ctx => {
+  supa = ctx.client;
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('top-user').textContent = ctx.email;
+  loadPerms();
+});
+</script>
+</body>
+</html>
