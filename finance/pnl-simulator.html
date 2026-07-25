@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MamaVege | P&L 压力测试</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#166534; --green2:#22c55e; --green-light:#dcfce7;
+    --red:#dc2626; --red-light:#fee2e2;
+    --amber:#d97706; --amber-light:#fef3c7;
+    --blue:#2563eb; --blue-light:#dbeafe;
+    --text:#1a1a1a; --muted:#6b7280; --border:#e5e7eb; --card:#ffffff; --bg:#f4f6f3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+  .mv-top{overflow:hidden}
+  .mv-top-main{display:flex;justify-content:space-between;align-items:center;padding:12px 24px;background:#166534}
+  .mv-top-left{display:flex;align-items:center;gap:12px}
+  .mv-top-logo{height:34px;background:#fff;border-radius:8px;padding:3px 8px;display:flex;align-items:center;text-decoration:none}
+  .mv-top-logo img{height:26px}
+  .mv-top-sep{width:1px;height:24px;background:rgba(255,255,255,.2)}
+  .mv-top-tool{color:#fff;font-size:14px;font-weight:700;letter-spacing:.3px}
+  .mv-top-right{display:flex;align-items:center;gap:12px}
+  .mv-top-btn{background:rgba(255,255,255,.12);border:none;color:rgba(255,255,255,.8);padding:5px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:none}
+  .mv-top-btn:hover{background:rgba(255,255,255,.2);color:#fff}
+  .mv-top-sub{display:flex;justify-content:space-between;align-items:center;padding:5px 24px;background:#15532d;color:rgba(255,255,255,.6);font-size:11px}
+
+  .wrap{max-width:1100px;margin:0 auto;padding:1.5rem 1.5rem 3rem;}
+  .page-title{font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--green);margin-bottom:4px;}
+  .page-sub{font-size:13px;color:var(--muted);margin-bottom:24px;}
+
+  .sec-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin:28px 0 12px;display:flex;align-items:center;gap:10px;}
+  .sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+  .sec-title:first-child{margin-top:0;}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+
+  /* KPI row */
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+  @media(max-width:700px){.kpi-row{grid-template-columns:1fr 1fr;}}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+  .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:#d1d5db;border-radius:12px 12px 0 0;}
+  .kpi.kred::before{background:var(--red);}
+  .kpi.kamber::before{background:var(--amber);}
+  .kpi.kgreen::before{background:var(--green2);}
+  .kpi-label{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:5px;}
+  .kpi-val{font-size:18px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums;}
+  .kpi-val.red{color:var(--red);}
+  .kpi-val.amber{color:var(--amber);}
+  .kpi-val.green{color:var(--green);}
+
+  /* Sliders */
+  .slider-block{display:flex;flex-direction:column;gap:14px;}
+  .slider-row{display:flex;align-items:center;gap:14px;}
+  .slider-label{font-size:13px;color:var(--text);width:150px;flex-shrink:0;}
+  .slider-val{font-size:13px;font-weight:700;color:#111827;width:110px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums;}
+  input[type=range]{flex:1;accent-color:var(--green);}
+
+  /* Waterfall */
+  .wf{display:flex;flex-direction:column;gap:6px;}
+  .wf-row{display:flex;align-items:center;gap:10px;font-size:12px;}
+  .wf-label{width:170px;color:var(--muted);flex-shrink:0;text-align:right;font-weight:500;}
+  .wf-bar-wrap{flex:1;position:relative;height:24px;}
+  .wf-bar{height:100%;border-radius:4px;position:absolute;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;color:#fff;font-variant-numeric:tabular-nums;}
+  .wf-amt{width:110px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums;font-size:12px;flex-shrink:0;}
+  .wf-amt.red{color:var(--red);}
+  .wf-amt.green{color:var(--green);}
+  .wf-amt.amber{color:var(--amber);}
+
+  /* Alert */
+  .alert{border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.6;margin-top:14px;border-left:4px solid;}
+  .alert.red{background:var(--red-light);border-color:var(--red);color:#7f1d1d;}
+  .alert.amber{background:var(--amber-light);border-color:var(--amber);color:#78350f;}
+  .alert.green{background:var(--green-light);border-color:var(--green2);color:#14532d;}
+
+  /* Scenario buttons */
+  .scenario-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  @media(max-width:600px){.scenario-grid{grid-template-columns:1fr;}}
+  .scn-btn{padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);font-size:12px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;line-height:1.5;font-family:inherit;transition:all .15s;}
+  .scn-btn:hover{border-color:var(--green);background:var(--green-light);}
+  .scn-btn span{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px;}
+
+  /* Target box */
+  .target-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-size:13px;line-height:2;color:var(--text);}
+  .target-box b{color:#111827;}
+  .target-box .hi{color:var(--blue);font-weight:700;}
+  .target-box .warn{color:var(--red);font-weight:700;}
+
+  .layout{display:grid;grid-template-columns:340px 1fr;gap:18px;}
+  @media(max-width:860px){.layout{grid-template-columns:1fr;}}
+
+  .info-note{font-size:11px;color:#9ca3af;margin-top:12px;display:flex;align-items:center;gap:6px;}
+</style>
+</head>
+<body>
+
+<div class="mv-top">
+  <div class="mv-top-main">
+    <div class="mv-top-left">
+      <a href="../index.html" class="mv-top-logo"><img src="../Mamavege_Logo.png" alt="MamaVege"></a>
+      <div class="mv-top-sep"></div>
+      <span class="mv-top-tool">📊 P&L 压力测试</span>
+    </div>
+    <div class="mv-top-right">
+      <a class="mv-top-btn" href="index.html">← 财务首页</a>
+      <span id="top-user" style="color:rgba(255,255,255,.85);font-size:13px;font-weight:600"></span>
+      <button class="mv-top-btn" onclick="MVAuth.logout()">登出</button>
+    </div>
+  </div>
+  <div class="mv-top-sub">
+    <span class="mv-top-date"></span>
+    <span>MamaVege Management Platform · 月度盈亏模拟器</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="page-title">P&L 压力测试模拟器</div>
+  <div class="page-sub">调整营业额、毛利率与人工成本，实时查看月度盈亏结构。</div>
+
+  <!-- KPI strip -->
+  <div class="kpi-row">
+    <div class="kpi" id="kpi-gp">
+      <div class="kpi-label">毛利润</div>
+      <div class="kpi-val" id="k-gp">—</div>
+    </div>
+    <div class="kpi" id="kpi-payroll">
+      <div class="kpi-label">人工成本</div>
+      <div class="kpi-val" id="k-payroll">—</div>
+    </div>
+    <div class="kpi" id="kpi-pct">
+      <div class="kpi-label">人工占毛利</div>
+      <div class="kpi-val" id="k-pct">—</div>
+    </div>
+    <div class="kpi" id="kpi-net">
+      <div class="kpi-label">月净利润（估）</div>
+      <div class="kpi-val" id="k-net">—</div>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- Left: controls -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <div class="card">
+        <div class="sec-title" style="margin-top:0;">业绩参数</div>
+        <div class="slider-block">
+          <div class="slider-row">
+            <span class="slider-label">月营业额</span>
+            <input type="range" id="s-rev" min="200000" max="1000000" step="10000" value="450000">
+            <span class="slider-val" id="sv-rev">RM 450,000</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label">毛利率 (GM%)</span>
+            <input type="range" id="s-gm" min="20" max="65" step="1" value="40">
+            <span class="slider-val" id="sv-gm">40%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-title" style="margin-top:0;">成本参数</div>
+        <div class="slider-block">
+          <div class="slider-row">
+            <span class="slider-label">月人工基准</span>
+            <input type="range" id="s-base" min="80000" max="250000" step="1000" value="161169">
+            <span class="slider-val" id="sv-base">RM 161,169</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label">人工节省（裁减）</span>
+            <input type="range" id="s-cut" min="0" max="80000" step="1000" value="0">
+            <span class="slider-val" id="sv-cut">RM 0</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label">其他固定开销</span>
+            <input type="range" id="s-opex" min="20000" max="200000" step="5000" value="60000">
+            <span class="slider-val" id="sv-opex">RM 60,000</span>
+          </div>
+        </div>
+        <div class="info-note">💡 其他开销含租金、水电、运输、营销支出等</div>
+      </div>
+
+      <div class="card">
+        <div class="sec-title" style="margin-top:0;">快速场景</div>
+        <div class="scenario-grid">
+          <button class="scn-btn" onclick="setScenario(450000,40,161169,0,60000)">现状
+            <span>RM 450k，零削减</span>
+          </button>
+          <button class="scn-btn" onclick="setScenario(450000,40,161169,18000,60000)">裁 5 人 Sales/Mktg
+            <span>省约 RM 18k/月</span>
+          </button>
+          <button class="scn-btn" onclick="setScenario(600000,40,161169,0,60000)">业绩冲 600k
+            <span>不裁员，靠增长</span>
+          </button>
+          <button class="scn-btn" onclick="setScenario(600000,40,161169,18000,60000)">两者同时
+            <span>增长 + 裁减 5 人</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: waterfall + alert + targets -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <div class="card">
+        <div class="sec-title" style="margin-top:0;">月度P&L瀑布图</div>
+        <div class="wf" id="wf"></div>
+        <div id="alert-box" class="alert red" style="margin-top:14px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="sec-title" style="margin-top:0;">达到盈亏平衡需要…</div>
+        <div class="target-box" id="target-box"></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="../supabase.min.js"></script>
+<script src="../js/auth/auth.js"></script>
+<script>
+document.querySelectorAll('.mv-top-date').forEach(e =>
+  e.textContent = new Date().toLocaleDateString('zh-CN', {weekday:'short',year:'numeric',month:'short',day:'numeric'})
+);
+
+MVAuth.init({ module:'finance', minRole:'viewer', base:'../', title:'P&L Simulator', moduleName:'财务 Finance' }).then(ctx => {
+  document.getElementById('top-user').textContent = ctx.email;
+});
+
+const fmt = v => 'RM ' + Math.round(v).toLocaleString();
+const pct = (n, d) => (n / d * 100).toFixed(1) + '%';
+
+function calc(rev, gm, base, cut, opex) {
+  const gp = rev * gm / 100;
+  const payroll = Math.max(0, base - cut);
+  const afterPayroll = gp - payroll;
+  const net = afterPayroll - opex;
+  return { gp, payroll, afterPayroll, net };
+}
+
+function render(rev, gm, base, cut, opex) {
+  const d = calc(rev, gm, base, cut, opex);
+
+  document.getElementById('sv-rev').textContent = fmt(rev);
+  document.getElementById('sv-gm').textContent = gm + '%';
+  document.getElementById('sv-base').textContent = fmt(base);
+  document.getElementById('sv-cut').textContent = fmt(cut);
+  document.getElementById('sv-opex').textContent = fmt(opex);
+
+  const payrollPctGp = d.payroll / d.gp;
+  const netRate = d.net / rev;
+
+  // KPI chips
+  document.getElementById('k-gp').textContent = fmt(d.gp);
+  document.getElementById('k-payroll').textContent = fmt(d.payroll);
+  document.getElementById('k-pct').textContent = (payrollPctGp * 100).toFixed(1) + '%';
+  document.getElementById('k-net').textContent = (d.net >= 0 ? '' : '-') + fmt(Math.abs(d.net));
+
+  const kPctEl = document.getElementById('k-pct');
+  const kNetEl = document.getElementById('k-net');
+
+  kPctEl.className = payrollPctGp > 0.85 ? 'kpi-val red' : payrollPctGp > 0.65 ? 'kpi-val amber' : 'kpi-val green';
+  kNetEl.className = d.net < 0 ? 'kpi-val red' : d.net < 30000 ? 'kpi-val amber' : 'kpi-val green';
+
+  const setKpi = (id, cls) => { document.getElementById(id).className = 'kpi ' + cls; };
+  setKpi('kpi-gp', 'kgreen');
+  setKpi('kpi-payroll', d.payroll / d.gp > 0.75 ? 'kred' : 'kamber');
+  setKpi('kpi-pct', payrollPctGp > 0.85 ? 'kred' : payrollPctGp > 0.65 ? 'kamber' : 'kgreen');
+  setKpi('kpi-net', d.net < 0 ? 'kred' : d.net < 30000 ? 'kamber' : 'kgreen');
+
+  // Waterfall
+  const cogs = rev - d.gp;
+  const maxW = rev;
+  const rows = [
+    { label: '营业额', val: rev, neg: false, color: '#2563eb' },
+    { label: '− 货品成本 (COGS)', val: cogs, neg: true, color: '#9ca3af' },
+    { label: '= 毛利润 ' + pct(d.gp, rev), val: d.gp, neg: false, color: '#16a34a', total: true },
+    { label: '− 人工成本', val: d.payroll, neg: true, color: '#dc2626' },
+    { label: '= 扣薪后', val: Math.abs(d.afterPayroll), neg: d.afterPayroll < 0, color: d.afterPayroll >= 0 ? '#16a34a' : '#dc2626', total: true },
+    { label: '− 其他开销', val: opex, neg: true, color: '#9ca3af' },
+    { label: '= 月净利润', val: Math.abs(d.net), neg: d.net < 0, color: d.net >= 0 ? '#166534' : '#991b1b', total: true },
+  ];
+
+  document.getElementById('wf').innerHTML = rows.map(r => {
+    const w = Math.max(3, Math.abs(r.val) / maxW * 100);
+    const amtCls = r.total ? (r.neg ? 'red' : 'green') : (r.neg ? 'red' : 'green');
+    const sign = r.neg ? '−' : (r.total ? '=' : '+');
+    return `<div class="wf-row">
+      <span class="wf-label">${r.label}</span>
+      <div class="wf-bar-wrap"><div class="wf-bar" style="width:${w}%;background:${r.color};opacity:${r.total ? 1 : 0.8}">${fmt(r.val)}</div></div>
+      <span class="wf-amt ${amtCls}">${r.neg ? '−' : ''} ${fmt(r.val)}</span>
+    </div>`;
+  }).join('');
+
+  // Alert
+  const ab = document.getElementById('alert-box');
+  if (d.net < 0) {
+    ab.className = 'alert red';
+    ab.innerHTML = `每月亏损 <b>${fmt(Math.abs(d.net))}</b>。人工 + 其他开销共 <b>${fmt(d.payroll + opex)}</b>，超出毛利 <b>${fmt(Math.abs(d.net))}</b>，结构不可持续。`;
+  } else if (d.net < 25000) {
+    ab.className = 'alert amber';
+    ab.innerHTML = `月净利润仅 <b>${fmt(d.net)}</b>（净利率 <b>${(netRate * 100).toFixed(1)}%</b>）。扣税后几乎没有缓冲，一有意外支出即亏损。`;
+  } else {
+    ab.className = 'alert green';
+    ab.innerHTML = `月净利润 <b>${fmt(d.net)}</b>（净利率 <b>${(netRate * 100).toFixed(1)}%</b>）。结构趋于健康。`;
+  }
+
+  // Targets
+  const payroll = d.payroll;
+  const targetRevBE = (payroll + opex) / (gm / 100);
+  const targetRevHealthy = payroll / 0.25;
+  const needCutBE = Math.max(0, payroll + opex - d.gp);
+  const diffBE = targetRevBE - rev;
+
+  document.getElementById('target-box').innerHTML = `
+    <b>盈亏平衡营业额</b>：<span class="hi">${fmt(targetRevBE)}</span>
+    ${diffBE > 0 ? `（目前还差 <span class="warn">${fmt(diffBE)}</span>）` : `<span class="hi"> ✓ 已超过</span>`}<br>
+    <b>健康结构</b>（人工占营业额 ≤25%）：营业额需达 <span class="hi">${fmt(targetRevHealthy)}</span><br>
+    <b>维持现有业绩</b>：需再削减人工 <span class="warn">${fmt(needCutBE)}</span> 才能打平
+  `;
+}
+
+function setScenario(rev, gm, base, cut, opex) {
+  document.getElementById('s-rev').value = rev;
+  document.getElementById('s-gm').value = gm;
+  document.getElementById('s-base').value = base;
+  document.getElementById('s-cut').value = cut;
+  document.getElementById('s-opex').value = opex;
+  render(rev, gm, base, cut, opex);
+}
+
+function getVals() {
+  return [
+    +document.getElementById('s-rev').value,
+    +document.getElementById('s-gm').value,
+    +document.getElementById('s-base').value,
+    +document.getElementById('s-cut').value,
+    +document.getElementById('s-opex').value,
+  ];
+}
+
+['s-rev','s-gm','s-base','s-cut','s-opex'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => render(...getVals()));
+});
+
+render(450000, 40, 161169, 0, 60000);
+</script>
+</body>
+</html>
