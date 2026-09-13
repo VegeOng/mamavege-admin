@@ -100,10 +100,11 @@ document.querySelectorAll('.mv-top-date').forEach(e=>e.textContent=new Date().to
 
 // 模块注册表：未来新模块在这里加一行 + Supabase 权限表加行即可
 const MODULES=[
-  { id:'finance',    icon:'💰', name:'Finance 财务',     desc:'每日财务追踪 + 月度监督 + AP 付款管理', href:'finance/index.html', live:true },
-  { id:'purchasing', icon:'🛒', name:'Purchasing 采购',  desc:'采购管理板块 — 建设中',                 href:'#', live:false },
-  { id:'hr',         icon:'👥', name:'HR 人事',          desc:'人事管理板块 — 建设中',                 href:'#', live:false },
-  { id:'production', icon:'🏭', name:'Production 生产',  desc:'生产管理板块 — 建设中',                 href:'#', live:false },
+  { id:'finance',          icon:'💰', name:'Finance 财务',           desc:'每日财务追踪 + 月度监督 + AP 付款管理',     href:'finance/index.html',          live:true  },
+  { id:'accountdashboard', icon:'📊', name:'Account Dashboard',      desc:'月度总业绩与总开支记录 · 环比分析 · 年累计', href:'accountdashboard/index.html', live:true  },
+  { id:'purchasing',       icon:'🛒', name:'Purchasing 采购',        desc:'采购管理板块 — 建设中',                     href:'#',                           live:false },
+  { id:'hr',               icon:'👥', name:'HR 人事',                desc:'人事管理板块 — 建设中',                     href:'#',                           live:false },
+  { id:'production',       icon:'🏭', name:'Production 生产',        desc:'生产管理板块 — 建设中',                     href:'#',                           live:false },
 ];
 const ROLE_LABEL={admin:'管理员',editor:'编辑',viewer:'只读'};
 

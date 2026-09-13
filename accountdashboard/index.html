@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MamaVege | Account Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --green:#166534;--green2:#22c55e;--green-light:#dcfce7;--green-border:#bbf7d0;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-border:#fde68a;
+  --red:#dc2626;--red-light:#fee2e2;--red-border:#fca5a5;
+  --blue:#2563eb;--blue-light:#eff6ff;
+  --text:#1a1a1a;--muted:#6b7280;--border:#e5e7eb;--card:#fff;--bg:#f4f6f3;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* Nav */
+.mv-top{overflow:hidden}
+.mv-top-main{display:flex;justify-content:space-between;align-items:center;padding:12px 24px;background:#166534}
+.mv-top-left{display:flex;align-items:center;gap:12px}
+.mv-top-logo{height:34px;background:#fff;border-radius:8px;padding:3px 8px;display:flex;align-items:center;text-decoration:none}
+.mv-top-logo img{height:26px}
+.mv-top-sep{width:1px;height:24px;background:rgba(255,255,255,.2)}
+.mv-top-tool{color:#fff;font-size:14px;font-weight:700;letter-spacing:.3px}
+.mv-top-right{display:flex;align-items:center;gap:10px}
+.mv-top-btn{background:rgba(255,255,255,.12);border:none;color:rgba(255,255,255,.8);padding:5px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-block;}
+.mv-top-btn:hover{background:rgba(255,255,255,.2);color:#fff}
+.mv-top-sub{display:flex;justify-content:space-between;align-items:center;padding:5px 24px;background:#15532d;color:rgba(255,255,255,.6);font-size:11px}
+
+/* Layout */
+.wrap{max-width:1200px;margin:0 auto;padding:1.8rem 1.5rem 4rem;}
+
+.hero{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.hero-greet{font-size:11px;color:#9ca3af;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
+.hero-title{font-family:'DM Serif Display',serif;font-size:1.7rem;color:var(--green);margin-bottom:4px;}
+.hero-sub{font-size:13px;color:var(--muted);}
+
+.sec-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin:28px 0 12px;display:flex;align-items:center;gap:10px;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* YTD Banner */
+.ytd-banner{background:var(--green);border-radius:16px;padding:22px 28px;color:#fff;}
+.ytd-banner-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+.ytd-badge{font-size:11px;opacity:.65;text-transform:uppercase;letter-spacing:.1em;}
+.ytd-year{font-size:12px;font-weight:700;opacity:.75;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:20px;}
+.ytd-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+@media(max-width:680px){.ytd-kpis{grid-template-columns:repeat(2,1fr);}}
+.ytd-kpi-label{font-size:11px;opacity:.65;margin-bottom:4px;}
+.ytd-kpi-val{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.ytd-kpi-sub{font-size:11px;opacity:.55;margin-top:3px;}
+
+/* Chart */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.chart-wrap{position:relative;height:230px;}
+
+/* Table */
+.tbl-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.tbl-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 12px;border-bottom:1px solid var(--border);}
+.tbl-head-title{font-size:13px;font-weight:700;color:#374151;}
+.tbl-head-note{font-size:11px;color:var(--muted);}
+.tbl-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:960px;}
+thead th{padding:9px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;background:#f9fafb;border-bottom:1px solid var(--border);white-space:nowrap;}
+thead th.r{text-align:right;}
+thead th.c{text-align:center;}
+tbody tr{border-bottom:1px solid #f3f4f6;transition:background .12s;}
+tbody tr:hover{background:#f9fafb;}
+tbody tr.highlight{background:#f0fdf4;}
+tbody tr.highlight .mcell{font-weight:700;color:var(--green);}
+td{padding:11px 12px;vertical-align:middle;white-space:nowrap;}
+td.r{text-align:right;font-variant-numeric:tabular-nums;}
+td.c{text-align:center;}
+td.muted{color:var(--muted);}
+.tbl-empty{text-align:center;padding:48px;color:var(--muted);font-size:13px;}
+
+/* Colors */
+.pos{color:#15803d;font-weight:700;}
+.neg{color:#dc2626;font-weight:700;}
+
+/* MoM badge */
+.mom{display:inline-flex;align-items:center;gap:2px;font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;}
+.mom.up{background:#dcfce7;color:#15803d;}
+.mom.dn{background:#fee2e2;color:#dc2626;}
+.mom.flat{background:#f3f4f6;color:#6b7280;}
+.mom-na{color:#d1d5db;font-size:12px;}
+
+/* Margin pill */
+.mpill{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;}
+.mpill.hi{background:#dcfce7;color:#166534;}
+.mpill.mid{background:#fef3c7;color:#92400e;}
+.mpill.lo{background:#fee2e2;color:#dc2626;}
+
+/* Buttons */
+.btn{padding:8px 18px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:all .15s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:#14532d;}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:7px;}
+.btn-ghost{background:#f3f4f6;color:#374151;border:1px solid var(--border);}
+.btn-ghost:hover{background:#e5e7eb;}
+.btn-danger{background:var(--red-light);color:var(--red);border:1px solid var(--red-border);}
+.btn-danger:hover{background:var(--red-border);}
+.btn-blue{background:var(--blue-light);color:var(--blue);border:1px solid #bfdbfe;}
+.btn-blue:hover{background:#bfdbfe;}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:18px;padding:28px;width:100%;max-width:600px;margin:auto;box-shadow:0 16px 48px rgba(0,0,0,.18);}
+.modal-title{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--green);margin-bottom:4px;}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:22px;}
+.modal-section{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin:20px 0 12px;display:flex;align-items:center;gap:8px;}
+.modal-section::after{content:'';flex:1;height:1px;background:var(--border);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:480px){.form-grid{grid-template-columns:1fr;}}
+.f-field{margin-bottom:0;}
+.f-field.full{grid-column:1/-1;}
+.f-field label{display:block;font-size:11px;font-weight:700;color:#4b5563;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+.f-field input,.f-field textarea,.f-field select{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;background:#f9fafb;transition:border .2s;}
+.f-field input:focus,.f-field textarea:focus{outline:none;border-color:var(--green);background:#fff;}
+.f-field textarea{resize:vertical;min-height:60px;}
+.f-total{font-size:13px;font-weight:700;padding:9px 12px;border-radius:9px;background:#f3f4f6;color:#374151;grid-column:1/-1;}
+.f-total.pos{background:var(--green-light);color:var(--green);}
+.f-total.neg{background:var(--red-light);color:var(--red);}
+.modal-err{font-size:12px;color:#dc2626;margin-top:10px;display:none;}
+.modal-err.show{display:block;}
+.modal-actions{display:flex;gap:10px;margin-top:22px;justify-content:flex-end;flex-wrap:wrap;}
+
+/* Confirm */
+.confirm-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:center;justify-content:center;padding:16px;}
+.confirm-bg.open{display:flex;}
+.confirm-box{background:#fff;border-radius:14px;padding:24px;max-width:360px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.15);}
+.confirm-box h4{font-size:15px;font-weight:700;margin-bottom:8px;}
+.confirm-box p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;}
+.confirm-actions{display:flex;gap:10px;justify-content:flex-end;}
+</style>
+</head>
+<body>
+
+<div class="mv-top">
+  <div class="mv-top-main">
+    <div class="mv-top-left">
+      <a href="../index.html" class="mv-top-logo"><img src="../Mamavege_Logo.png" alt="MamaVege"></a>
+      <div class="mv-top-sep"></div>
+      <span class="mv-top-tool">📊 Account Dashboard</span>
+    </div>
+    <div class="mv-top-right">
+      <a href="../index.html" class="mv-top-btn">← Back</a>
+      <span id="top-user" style="color:rgba(255,255,255,.8);font-size:12px;font-weight:600;"></span>
+      <button class="mv-top-btn" onclick="MVAuth.logout()">Logout</button>
+    </div>
+  </div>
+  <div class="mv-top-sub">
+    <span id="top-date"></span>
+    <span>MamaVege · Account Dashboard · Monthly Revenue & Expenses</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <div class="hero-greet">Account Dashboard</div>
+      <div class="hero-title">Monthly Performance Overview</div>
+      <div class="hero-sub">Track monthly revenue by channel · expenses by category · net profit · MoM comparison</div>
+    </div>
+    <div id="add-btn-wrap" style="display:none;">
+      <button class="btn btn-primary" onclick="openModal()">＋ Add Month</button>
+    </div>
+  </div>
+
+  <!-- YTD -->
+  <div class="sec-title">Year-to-Date Summary</div>
+  <div class="ytd-banner">
+    <div class="ytd-banner-top">
+      <span class="ytd-badge">Year-to-Date</span>
+      <span class="ytd-year" id="ytd-year-badge"></span>
+    </div>
+    <div class="ytd-kpis">
+      <div>
+        <div class="ytd-kpi-label">Total Revenue</div>
+        <div class="ytd-kpi-val" id="ytd-rev">—</div>
+        <div class="ytd-kpi-sub" id="ytd-rev-sub">— months recorded</div>
+      </div>
+      <div>
+        <div class="ytd-kpi-label">Total Expenses</div>
+        <div class="ytd-kpi-val" id="ytd-exp">—</div>
+        <div class="ytd-kpi-sub" id="ytd-exp-sub">cumulative</div>
+      </div>
+      <div>
+        <div class="ytd-kpi-label">Net Profit</div>
+        <div class="ytd-kpi-val" id="ytd-net">—</div>
+        <div class="ytd-kpi-sub" id="ytd-net-sub">revenue − expenses</div>
+      </div>
+      <div>
+        <div class="ytd-kpi-label">Avg. Profit Margin</div>
+        <div class="ytd-kpi-val" id="ytd-margin">—</div>
+        <div class="ytd-kpi-sub">net ÷ revenue</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="sec-title">Monthly Trend</div>
+  <div class="card">
+    <div class="chart-wrap"><canvas id="chart-main"></canvas></div>
+  </div>
+
+  <!-- Table -->
+  <div class="sec-title">Monthly Breakdown</div>
+  <div class="tbl-card">
+    <div class="tbl-head">
+      <span class="tbl-head-title">All Months</span>
+      <span class="tbl-head-note">MoM = change vs. previous month &nbsp;·&nbsp; Click <b>Details</b> for expense breakdown</span>
+    </div>
+    <div class="tbl-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th class="r">Offline (RM)</th>
+            <th class="r">Online (RM)</th>
+            <th class="r">International (RM)</th>
+            <th class="r">Total Revenue</th>
+            <th class="c">MoM Rev</th>
+            <th class="r">Total Expenses</th>
+            <th class="c">MoM Exp</th>
+            <th class="r">Net Profit</th>
+            <th class="c">Margin</th>
+            <th class="c">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="11" class="tbl-empty">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;font-size:11px;color:#9ca3af;">
+    🔐 Data stored in Supabase · editor & admin can record data · admin can delete
+  </div>
+</div>
+
+<!-- Add / Edit Modal -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Add Month</div>
+    <div class="modal-sub" id="modal-sub">Enter revenue by channel and expenses by category.</div>
+
+    <div class="modal-section">Month</div>
+    <div class="form-grid">
+      <div class="f-field full">
+        <label>Month</label>
+        <input type="month" id="f-month">
+      </div>
+    </div>
+
+    <div class="modal-section">Revenue by Channel</div>
+    <div class="form-grid">
+      <div class="f-field">
+        <label>Offline (MT + GT)</label>
+        <input type="number" id="f-rev-offline" placeholder="0.00" min="0" step="0.01" oninput="recalc()">
+      </div>
+      <div class="f-field">
+        <label>Online (Shopee / Lazada…)</label>
+        <input type="number" id="f-rev-online" placeholder="0.00" min="0" step="0.01" oninput="recalc()">
+      </div>
+      <div class="f-field">
+        <label>International (IB)</label>
+        <input type="number" id="f-rev-international" placeholder="0.00" min="0" step="0.01" oninput="recalc()">
+      </div>
+      <div class="f-total" id="f-rev-total">Total Revenue: —</div>
+    </div>
+
+    <div class="modal-section">Expenses by Category</div>
+    <div class="form-grid" id="exp-form-grid">
+      <!-- injected by JS -->
+    </div>
+    <div class="form-grid" style="margin-top:10px;">
+      <div class="f-total" id="f-exp-total">Total Expenses: —</div>
+      <div class="f-total" id="f-net-total">Net Profit: —</div>
+    </div>
+
+    <div class="modal-section">Notes</div>
+    <div class="form-grid">
+      <div class="f-field full">
+        <label>Notes (optional)</label>
+        <textarea id="f-notes" placeholder="Monthly report highlights, special items…"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-err" id="modal-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="delete-btn" onclick="confirmDelete()" style="display:none;">Delete</button>
+      <button class="btn btn-primary" id="save-btn" onclick="saveMonth()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete -->
+<div class="confirm-bg" id="confirm-bg">
+  <div class="confirm-box">
+    <h4>⚠️ Confirm Delete</h4>
+    <p>This cannot be undone. Delete all data for <strong id="confirm-label"></strong>?</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" onclick="doDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="../supabase.min.js"></script>
+<script src="../js/auth/auth.js"></script>
+<script>
+document.getElementById('top-date').textContent = new Date().toLocaleDateString('en-MY',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+
+const CUR_YEAR  = new Date().getFullYear();
+const CUR_MONTH = new Date().toISOString().slice(0,7);
+const RM = v => 'RM ' + Number(v).toLocaleString('en-MY',{minimumFractionDigits:0,maximumFractionDigits:0});
+const PCT = (v,dec=1) => (v>=0?'+':'')+v.toFixed(dec)+'%';
+
+const EXP_CATS = [
+  { key:'exp_ads_promotions',   label:'Advertisement & Promotions' },
+  { key:'exp_dc_rebates',       label:'DC Rebates' },
+  { key:'exp_lazada_fee',       label:'Lazada Transaction Fee' },
+  { key:'exp_listing_fee',      label:'Listing Fee' },
+  { key:'exp_marketing',        label:'Marketing Expenses' },
+  { key:'exp_shopee_fee',       label:'Shopee Transaction Fee' },
+  { key:'exp_b2b_subscription', label:'B2B Subscription Fee' },
+  { key:'exp_transaction_fees', label:'Transaction Fees' },
+  { key:'exp_transportation',   label:'Transportation (DC Charge)' },
+  { key:'exp_admin',            label:'Admin' },
+  { key:'exp_payroll',          label:'Payroll' },
+  { key:'exp_upkeep',           label:'Upkeep' },
+  { key:'exp_rental_utility',   label:'Rental & Utility' },
+];
+
+// Build expense form fields
+document.getElementById('exp-form-grid').innerHTML = EXP_CATS.map(c =>
+  `<div class="f-field">
+    <label>${c.label}</label>
+    <input type="number" id="f-${c.key}" placeholder="0.00" min="0" step="0.01" oninput="recalc()">
+  </div>`
+).join('');
+
+let _client, _role, _rows = [], _editId = null;
+
+MVAuth.init({ module:'accountdashboard', minRole:'viewer', base:'../' }).then(ctx => {
+  _client = ctx.client;
+  _role   = ctx.role;
+  document.getElementById('top-user').textContent = ctx.email;
+  if (_role === 'editor' || _role === 'admin') {
+    document.getElementById('add-btn-wrap').style.display = '';
+  }
+  loadData();
+});
+
+async function loadData() {
+  const { data, error } = await _client
+    .from('monthly_summary').select('*').order('month', { ascending: true });
+  if (error) {
+    document.getElementById('tbody').innerHTML =
+      `<tr><td colspan="11" class="tbl-empty" style="color:var(--red);">Load error: ${error.message}</td></tr>`;
+    return;
+  }
+  _rows = data || [];
+  renderYTD(_rows);
+  renderChart(_rows);
+  renderTable(_rows);
+}
+
+/* ── YTD ── */
+function renderYTD(rows) {
+  const yr = String(CUR_YEAR);
+  document.getElementById('ytd-year-badge').textContent = yr;
+  const ytd = rows.filter(r => r.month.startsWith(yr));
+  const totRev = ytd.reduce((s,r) => s + rev(r), 0);
+  const totExp = ytd.reduce((s,r) => s + exp(r), 0);
+  const net    = totRev - totExp;
+  const margin = totRev > 0 ? net/totRev*100 : 0;
+
+  document.getElementById('ytd-rev').textContent    = ytd.length ? RM(totRev) : '—';
+  document.getElementById('ytd-exp').textContent    = ytd.length ? RM(totExp) : '—';
+  document.getElementById('ytd-net').textContent    = ytd.length ? RM(net)    : '—';
+  document.getElementById('ytd-margin').textContent = ytd.length ? margin.toFixed(1)+'%' : '—';
+  document.getElementById('ytd-rev-sub').textContent = ytd.length + ' month' + (ytd.length!==1?'s':'') + ' recorded';
+  document.getElementById('ytd-net-sub').textContent = net >= 0 ? 'Profit' : 'Loss';
+}
+
+/* ── Chart ── */
+let _chart;
+function renderChart(rows) {
+  const ytd = rows.filter(r => r.month.startsWith(String(CUR_YEAR)));
+  const ctx = document.getElementById('chart-main').getContext('2d');
+  if (_chart) _chart.destroy();
+  if (!ytd.length) return;
+  _chart = new Chart(ctx, {
+    data: {
+      labels: ytd.map(r => mlabel(r.month, 'short')),
+      datasets: [
+        { type:'bar',  label:'Revenue',  data: ytd.map(r=>rev(r)), backgroundColor:'rgba(22,101,52,.72)', borderRadius:4, order:2 },
+        { type:'bar',  label:'Expenses', data: ytd.map(r=>exp(r)), backgroundColor:'rgba(220,38,38,.55)',  borderRadius:4, order:3 },
+        { type:'line', label:'Net',      data: ytd.map(r=>rev(r)-exp(r)), borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,.1)', borderWidth:2.5, pointRadius:4, pointBackgroundColor:'#22c55e', fill:true, tension:.35, order:1 },
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'top', labels:{ font:{family:'DM Sans',size:12}, usePointStyle:true, boxWidth:10 } },
+        tooltip:{ callbacks:{ label: c => ' '+c.dataset.label+': RM '+Number(c.raw).toLocaleString('en-MY',{maximumFractionDigits:0}) } }
+      },
+      scales:{
+        x:{ grid:{display:false}, ticks:{font:{family:'DM Sans',size:11}} },
+        y:{ grid:{color:'#f0f0f0'}, ticks:{font:{family:'DM Sans',size:11}, callback:v=>'RM '+Number(v).toLocaleString('en-MY',{maximumFractionDigits:0})} }
+      }
+    }
+  });
+}
+
+/* ── Table ── */
+function renderTable(rows) {
+  const tbody = document.getElementById('tbody');
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="11" class="tbl-empty">No data yet · click "Add Month" to get started</td></tr>`;
+    return;
+  }
+  const desc = [...rows].sort((a,b)=>b.month.localeCompare(a.month));
+  const canEdit = _role==='editor'||_role==='admin';
+
+  tbody.innerHTML = desc.map((row, idx) => {
+    const prevIdx = rows.indexOf(row) - 1;
+    const prev    = prevIdx >= 0 ? rows[prevIdx] : null;
+    const r       = rev(row), e = exp(row), n = r - e;
+    const mg      = r > 0 ? n/r*100 : 0;
+    const isCur   = row.month === CUR_MONTH;
+
+    const momRevHtml = prev ? momBadge(r, rev(prev), false) : '<span class="mom-na">—</span>';
+    const momExpHtml = prev ? momBadge(e, exp(prev), true)  : '<span class="mom-na">—</span>';
+    const mgClass    = mg>=20?'hi':mg>=10?'mid':'lo';
+
+    const actions = [
+      `<a class="btn btn-blue btn-sm" href="detail.html?month=${row.month}">Details</a>`,
+      canEdit ? `<button class="btn btn-ghost btn-sm" onclick='openModal(${JSON.stringify(row)})'>Edit</button>` : ''
+    ].filter(Boolean).join(' ');
+
+    return `<tr class="${isCur?'highlight':''}">
+      <td class="mcell">${mlabel(row.month)}${isCur?' <span style="font-size:10px;background:#dcfce7;color:#166534;padding:1px 6px;border-radius:10px;font-weight:700;">Current</span>':''}</td>
+      <td class="r">${RM(row.rev_offline)}</td>
+      <td class="r">${RM(row.rev_online)}</td>
+      <td class="r">${RM(row.rev_international)}</td>
+      <td class="r" style="font-weight:700;">${RM(r)}</td>
+      <td class="c">${momRevHtml}</td>
+      <td class="r">${RM(e)}</td>
+      <td class="c">${momExpHtml}</td>
+      <td class="r ${n>=0?'pos':'neg'}">${RM(n)}</td>
+      <td class="c"><span class="mpill ${mgClass}">${mg.toFixed(1)}%</span></td>
+      <td class="c">${actions}</td>
+    </tr>`;
+  }).join('');
+}
+
+function momBadge(cur, prev, invertColor) {
+  const pct = prev ? (cur-prev)/prev*100 : 0;
+  const isGood = invertColor ? pct<0 : pct>0;
+  const cls  = pct===0?'flat':isGood?'up':'dn';
+  const arr  = pct>0?'▲':pct<0?'▼':'─';
+  return `<span class="mom ${cls}">${arr} ${Math.abs(pct).toFixed(1)}%</span>`;
+}
+
+function mlabel(m, style) {
+  const [y,mo] = m.split('-');
+  const mn = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return style==='short' ? mn[+mo] : y+' '+mn[+mo];
+}
+function rev(r){ return (+r.rev_offline)+(+r.rev_online)+(+r.rev_international); }
+function exp(r){ return EXP_CATS.reduce((s,c)=>s+(+r[c.key]||0),0); }
+
+/* ── Modal ── */
+function openModal(row) {
+  _editId = row?.id ?? null;
+  document.getElementById('modal-title').textContent = row ? 'Edit Month' : 'Add Month';
+  document.getElementById('modal-sub').textContent   = row ? `Editing ${mlabel(row.month)}.` : 'Enter revenue by channel and expenses by category.';
+  const today = new Date().toISOString().slice(0,7);
+  const fMonth = document.getElementById('f-month');
+  fMonth.value    = row ? row.month : today;
+  fMonth.disabled = !!row;
+  document.getElementById('f-rev-offline').value       = row ? (+row.rev_offline||0).toFixed(2)       : '';
+  document.getElementById('f-rev-online').value        = row ? (+row.rev_online||0).toFixed(2)        : '';
+  document.getElementById('f-rev-international').value = row ? (+row.rev_international||0).toFixed(2) : '';
+  EXP_CATS.forEach(c => {
+    document.getElementById('f-'+c.key).value = row ? (+row[c.key]||0).toFixed(2) : '';
+  });
+  document.getElementById('f-notes').value = row?.notes || '';
+  document.getElementById('delete-btn').style.display = (row && _role==='admin') ? '' : 'none';
+  document.getElementById('modal-err').className = 'modal-err';
+  recalc();
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-bg').classList.remove('open'); }
+
+function recalc() {
+  const r = ['f-rev-offline','f-rev-online','f-rev-international'].reduce((s,id)=>s+(parseFloat(document.getElementById(id).value)||0),0);
+  const e = EXP_CATS.reduce((s,c)=>s+(parseFloat(document.getElementById('f-'+c.key).value)||0),0);
+  const n = r - e;
+  const elRev = document.getElementById('f-rev-total');
+  const elExp = document.getElementById('f-exp-total');
+  const elNet = document.getElementById('f-net-total');
+  elRev.textContent = 'Total Revenue: ' + (r ? RM(r) : '—');
+  elExp.textContent = 'Total Expenses: ' + (e ? RM(e) : '—');
+  elNet.className   = 'f-total ' + (r||e ? (n>=0?'pos':'neg') : '');
+  elNet.textContent = 'Net Profit: ' + (r||e ? RM(n) : '—');
+}
+
+async function saveMonth() {
+  const month = document.getElementById('f-month').value;
+  if (!month) { showErr('Please select a month.'); return; }
+  const payload = { month,
+    rev_offline:       parseFloat(document.getElementById('f-rev-offline').value)       || 0,
+    rev_online:        parseFloat(document.getElementById('f-rev-online').value)        || 0,
+    rev_international: parseFloat(document.getElementById('f-rev-international').value) || 0,
+    notes: document.getElementById('f-notes').value.trim(),
+  };
+  EXP_CATS.forEach(c => { payload[c.key] = parseFloat(document.getElementById('f-'+c.key).value) || 0; });
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  document.getElementById('modal-err').className = 'modal-err';
+
+  let error;
+  if (_editId) {
+    payload.updated_at = new Date().toISOString();
+    ({ error } = await _client.from('monthly_summary').update(payload).eq('id',_editId));
+  } else {
+    ({ error } = await _client.from('monthly_summary').insert([payload]));
+  }
+  btn.disabled = false; btn.textContent = 'Save';
+  if (error) { showErr(error.code==='23505' ? 'This month already has a record — use Edit instead.' : error.message); return; }
+  closeModal();
+  await loadData();
+}
+
+function showErr(msg) {
+  const el = document.getElementById('modal-err');
+  el.textContent = msg; el.className = 'modal-err show';
+}
+
+/* ── Delete ── */
+function confirmDelete() {
+  document.getElementById('confirm-label').textContent = mlabel(document.getElementById('f-month').value);
+  document.getElementById('confirm-bg').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirm-bg').classList.remove('open'); }
+async function doDelete() {
+  closeConfirm();
+  const { error } = await _client.from('monthly_summary').delete().eq('id',_editId);
+  if (error) { alert('Delete failed: '+error.message); return; }
+  closeModal(); await loadData();
+}
+
+document.getElementById('modal-bg').addEventListener('click',  e=>{ if(e.target===e.currentTarget) closeModal(); });
+document.getElementById('confirm-bg').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeConfirm(); });
+</script>
+</body>
+</html>

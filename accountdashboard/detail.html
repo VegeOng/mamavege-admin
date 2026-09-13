@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MamaVege | Expense Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --green:#166534;--green2:#22c55e;--green-light:#dcfce7;--green-border:#bbf7d0;
+  --red:#dc2626;--red-light:#fee2e2;
+  --text:#1a1a1a;--muted:#6b7280;--border:#e5e7eb;--card:#fff;--bg:#f4f6f3;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+.mv-top{overflow:hidden}
+.mv-top-main{display:flex;justify-content:space-between;align-items:center;padding:12px 24px;background:#166534}
+.mv-top-left{display:flex;align-items:center;gap:12px}
+.mv-top-logo{height:34px;background:#fff;border-radius:8px;padding:3px 8px;display:flex;align-items:center;text-decoration:none}
+.mv-top-logo img{height:26px}
+.mv-top-sep{width:1px;height:24px;background:rgba(255,255,255,.2)}
+.mv-top-tool{color:#fff;font-size:14px;font-weight:700;letter-spacing:.3px}
+.mv-top-right{display:flex;align-items:center;gap:10px}
+.mv-top-btn{background:rgba(255,255,255,.12);border:none;color:rgba(255,255,255,.8);padding:5px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-block;}
+.mv-top-btn:hover{background:rgba(255,255,255,.2);color:#fff}
+.mv-top-sub{display:flex;justify-content:space-between;align-items:center;padding:5px 24px;background:#15532d;color:rgba(255,255,255,.6);font-size:11px}
+
+.wrap{max-width:1100px;margin:0 auto;padding:1.8rem 1.5rem 4rem;}
+
+.page-header{margin-bottom:24px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-decoration:none;margin-bottom:14px;transition:color .15s;}
+.back-link:hover{color:var(--green);}
+.page-title{font-family:'DM Serif Display',serif;font-size:1.7rem;color:var(--green);margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--muted);}
+
+.sec-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin:28px 0 12px;display:flex;align-items:center;gap:10px;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* Summary cards */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px;}
+@media(max-width:680px){.summary-grid{grid-template-columns:repeat(2,1fr);}}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04);position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:#d1d5db;}
+.kpi.green::before{background:var(--green2);}
+.kpi.red::before{background:var(--red);}
+.kpi.amber::before{background:#d97706;}
+.kpi.blue::before{background:#3b82f6;}
+.kpi-label{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:5px;}
+.kpi-val{font-size:20px;font-weight:700;color:#111827;}
+.kpi-val.pos{color:#15803d;}
+.kpi-val.neg{color:var(--red);}
+.kpi-sub{font-size:11px;color:#9ca3af;margin-top:4px;}
+
+/* Revenue breakdown */
+.rev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+@media(max-width:600px){.rev-grid{grid-template-columns:1fr;}}
+.rev-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.rev-label{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;}
+.rev-val{font-size:18px;font-weight:700;color:#111827;margin-bottom:4px;}
+.rev-pct{font-size:12px;color:var(--muted);}
+
+/* Chart + table layout */
+.detail-layout{display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start;}
+@media(max-width:860px){.detail-layout{grid-template-columns:1fr;}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.chart-wrap{position:relative;height:300px;}
+
+/* Expense table */
+.tbl-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{padding:10px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;background:#f9fafb;border-bottom:1px solid var(--border);white-space:nowrap;}
+thead th.r{text-align:right;}
+tbody tr{border-bottom:1px solid #f3f4f6;}
+tbody tr:hover{background:#f9fafb;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr.total-row{background:#f0fdf4;border-top:2px solid var(--green-border);}
+tbody tr.total-row td{font-weight:700;color:var(--green);}
+td{padding:11px 16px;vertical-align:middle;}
+td.r{text-align:right;font-variant-numeric:tabular-nums;}
+td.muted{color:var(--muted);}
+
+/* Progress bar */
+.bar-wrap{display:flex;align-items:center;gap:8px;}
+.bar-track{flex:1;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;min-width:60px;}
+.bar-fill{height:100%;border-radius:3px;background:var(--green2);transition:width .4s;}
+
+.err-box{text-align:center;padding:60px;color:var(--red);font-size:14px;}
+</style>
+</head>
+<body>
+
+<div class="mv-top">
+  <div class="mv-top-main">
+    <div class="mv-top-left">
+      <a href="../index.html" class="mv-top-logo"><img src="../Mamavege_Logo.png" alt="MamaVege"></a>
+      <div class="mv-top-sep"></div>
+      <span class="mv-top-tool">📊 Expense Detail</span>
+    </div>
+    <div class="mv-top-right">
+      <a href="index.html" class="mv-top-btn">← Dashboard</a>
+      <span id="top-user" style="color:rgba(255,255,255,.8);font-size:12px;font-weight:600;"></span>
+      <button class="mv-top-btn" onclick="MVAuth.logout()">Logout</button>
+    </div>
+  </div>
+  <div class="mv-top-sub">
+    <span id="top-date"></span>
+    <span>MamaVege · Account Dashboard · Expense Breakdown</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="page-header">
+    <a href="index.html" class="back-link">← Back to Dashboard</a>
+    <div class="page-title" id="page-title">Loading…</div>
+    <div class="page-sub" id="page-sub"></div>
+  </div>
+
+  <div id="main-content" style="display:none;">
+
+    <!-- KPI row -->
+    <div class="sec-title">Month Summary</div>
+    <div class="summary-grid">
+      <div class="kpi green">
+        <div class="kpi-label">Total Revenue</div>
+        <div class="kpi-val" id="kpi-rev">—</div>
+        <div class="kpi-sub">Offline + Online + International</div>
+      </div>
+      <div class="kpi red">
+        <div class="kpi-label">Total Expenses</div>
+        <div class="kpi-val" id="kpi-exp">—</div>
+        <div class="kpi-sub">All 13 categories</div>
+      </div>
+      <div class="kpi blue">
+        <div class="kpi-label">Net Profit</div>
+        <div class="kpi-val" id="kpi-net">—</div>
+        <div class="kpi-sub" id="kpi-net-sub"></div>
+      </div>
+      <div class="kpi amber">
+        <div class="kpi-label">Profit Margin</div>
+        <div class="kpi-val" id="kpi-margin">—</div>
+        <div class="kpi-sub">Net ÷ Revenue</div>
+      </div>
+    </div>
+
+    <!-- Revenue breakdown -->
+    <div class="sec-title">Revenue by Channel</div>
+    <div class="rev-grid">
+      <div class="rev-card">
+        <div class="rev-label">Offline (MT + GT)</div>
+        <div class="rev-val" id="rev-offline">—</div>
+        <div class="rev-pct" id="rev-offline-pct"></div>
+      </div>
+      <div class="rev-card">
+        <div class="rev-label">Online (Shopee / Lazada…)</div>
+        <div class="rev-val" id="rev-online">—</div>
+        <div class="rev-pct" id="rev-online-pct"></div>
+      </div>
+      <div class="rev-card">
+        <div class="rev-label">International (IB)</div>
+        <div class="rev-val" id="rev-international">—</div>
+        <div class="rev-pct" id="rev-international-pct"></div>
+      </div>
+    </div>
+
+    <!-- Expense breakdown -->
+    <div class="sec-title">Expense Breakdown</div>
+    <div class="detail-layout">
+      <!-- Donut chart -->
+      <div class="card">
+        <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:16px;">% of Total Expenses</div>
+        <div class="chart-wrap"><canvas id="donut-chart"></canvas></div>
+      </div>
+      <!-- Table -->
+      <div class="tbl-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th class="r">Amount (RM)</th>
+              <th class="r">% of Expenses</th>
+              <th class="r">% of Revenue</th>
+              <th style="min-width:100px;">Share</th>
+            </tr>
+          </thead>
+          <tbody id="exp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div id="notes-section" style="display:none;margin-top:16px;">
+      <div class="sec-title">Notes</div>
+      <div class="card" style="font-size:13px;color:var(--text);line-height:1.7;" id="notes-body"></div>
+    </div>
+  </div>
+
+  <div id="err-box" class="err-box" style="display:none;"></div>
+</div>
+
+<script src="../supabase.min.js"></script>
+<script src="../js/auth/auth.js"></script>
+<script>
+document.getElementById('top-date').textContent = new Date().toLocaleDateString('en-MY',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+
+const RM = v => 'RM ' + Number(v).toLocaleString('en-MY',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+const EXP_CATS = [
+  { key:'exp_ads_promotions',   label:'Advertisement & Promotions' },
+  { key:'exp_dc_rebates',       label:'DC Rebates' },
+  { key:'exp_lazada_fee',       label:'Lazada Transaction Fee' },
+  { key:'exp_listing_fee',      label:'Listing Fee' },
+  { key:'exp_marketing',        label:'Marketing Expenses' },
+  { key:'exp_shopee_fee',       label:'Shopee Transaction Fee' },
+  { key:'exp_b2b_subscription', label:'B2B Subscription Fee' },
+  { key:'exp_transaction_fees', label:'Transaction Fees' },
+  { key:'exp_transportation',   label:'Transportation (DC Charge)' },
+  { key:'exp_admin',            label:'Admin' },
+  { key:'exp_payroll',          label:'Payroll' },
+  { key:'exp_upkeep',           label:'Upkeep' },
+  { key:'exp_rental_utility',   label:'Rental & Utility' },
+];
+
+const CHART_COLORS = [
+  '#166534','#dc2626','#d97706','#2563eb','#7c3aed',
+  '#0891b2','#059669','#d97706','#9333ea','#0284c7',
+  '#16a34a','#ca8a04','#b91c1c'
+];
+
+function mlabel(m) {
+  const [y,mo] = m.split('-');
+  const mn = ['','January','February','March','April','May','June','July','August','September','October','November','December'];
+  return mn[+mo] + ' ' + y;
+}
+
+const month = new URLSearchParams(location.search).get('month');
+if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+  document.getElementById('page-title').textContent = 'Invalid month parameter';
+  document.getElementById('err-box').style.display = '';
+  document.getElementById('err-box').textContent = 'Missing or invalid ?month= parameter. Go back and click Details on a month.';
+}
+
+MVAuth.init({ module:'accountdashboard', minRole:'viewer', base:'../' }).then(async ctx => {
+  document.getElementById('top-user').textContent = ctx.email;
+  if (!month || !/^\d{4}-\d{2}$/.test(month)) return;
+
+  const { data, error } = await ctx.client
+    .from('monthly_summary').select('*').eq('month', month).maybeSingle();
+
+  if (error) { showErr('Load error: '+error.message); return; }
+  if (!data)  { showErr('No data found for '+mlabel(month)+'. Please add it from the dashboard first.'); return; }
+
+  render(data);
+});
+
+function showErr(msg) {
+  document.getElementById('page-title').textContent = 'Error';
+  document.getElementById('err-box').style.display = '';
+  document.getElementById('err-box').textContent = msg;
+}
+
+function render(d) {
+  const totalRev = (+d.rev_offline)+(+d.rev_online)+(+d.rev_international);
+  const totalExp = EXP_CATS.reduce((s,c)=>s+(+d[c.key]||0),0);
+  const net      = totalRev - totalExp;
+  const margin   = totalRev > 0 ? net/totalRev*100 : 0;
+
+  document.getElementById('page-title').textContent = mlabel(d.month);
+  document.getElementById('page-sub').textContent   = 'Full expense breakdown · % of total expenses · % of revenue';
+
+  // KPIs
+  document.getElementById('kpi-rev').textContent    = RM(totalRev);
+  document.getElementById('kpi-exp').textContent    = RM(totalExp);
+  const kpiNet = document.getElementById('kpi-net');
+  kpiNet.textContent  = RM(net);
+  kpiNet.className    = 'kpi-val ' + (net>=0?'pos':'neg');
+  document.getElementById('kpi-net-sub').textContent = net>=0?'Profit':'Loss';
+  document.getElementById('kpi-margin').textContent  = margin.toFixed(1)+'%';
+
+  // Revenue channels
+  const channels = [
+    { id:'rev-offline',       val:+d.rev_offline },
+    { id:'rev-online',        val:+d.rev_online },
+    { id:'rev-international', val:+d.rev_international },
+  ];
+  channels.forEach(c => {
+    document.getElementById(c.id).textContent = RM(c.val);
+    document.getElementById(c.id+'-pct').textContent = totalRev>0
+      ? (c.val/totalRev*100).toFixed(1)+'% of total revenue'
+      : '—';
+  });
+
+  // Expense table
+  const cats = EXP_CATS.map(c=>({ label:c.label, val:+d[c.key]||0 }))
+                        .filter(c=>c.val>0)
+                        .sort((a,b)=>b.val-a.val);
+  const maxVal = cats.length ? cats[0].val : 1;
+
+  document.getElementById('exp-tbody').innerHTML = [
+    ...cats.map(c => {
+      const pctExp = totalExp>0 ? c.val/totalExp*100 : 0;
+      const pctRev = totalRev>0 ? c.val/totalRev*100 : 0;
+      const barW   = totalExp>0 ? (c.val/totalExp*100).toFixed(1) : 0;
+      return `<tr>
+        <td>${c.label}</td>
+        <td class="r">${RM(c.val)}</td>
+        <td class="r">${pctExp.toFixed(1)}%</td>
+        <td class="r">${pctRev.toFixed(1)}%</td>
+        <td>
+          <div class="bar-wrap">
+            <div class="bar-track"><div class="bar-fill" style="width:${barW}%"></div></div>
+            <span style="font-size:11px;color:var(--muted);white-space:nowrap;">${barW}%</span>
+          </div>
+        </td>
+      </tr>`;
+    }),
+    `<tr class="total-row">
+      <td>Total Expenses</td>
+      <td class="r">${RM(totalExp)}</td>
+      <td class="r">100%</td>
+      <td class="r">${totalRev>0?(totalExp/totalRev*100).toFixed(1)+'%':'—'}</td>
+      <td></td>
+    </tr>`
+  ].join('');
+
+  // Donut chart (top 8 + others)
+  const top8  = cats.slice(0,8);
+  const rest  = cats.slice(8).reduce((s,c)=>s+c.val,0);
+  const labels = top8.map(c=>c.label);
+  const vals   = top8.map(c=>c.val);
+  if (rest>0) { labels.push('Others'); vals.push(rest); }
+
+  new Chart(document.getElementById('donut-chart').getContext('2d'), {
+    type:'doughnut',
+    data:{
+      labels,
+      datasets:[{ data:vals, backgroundColor:CHART_COLORS, borderWidth:1.5, borderColor:'#fff', hoverBorderWidth:2 }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      cutout:'62%',
+      plugins:{
+        legend:{ position:'bottom', labels:{ font:{family:'DM Sans',size:10}, usePointStyle:true, boxWidth:8, padding:12 } },
+        tooltip:{ callbacks:{
+          label: c => {
+            const pct = totalExp>0 ? (c.raw/totalExp*100).toFixed(1)+'%' : '';
+            return ' '+c.label+': RM '+Number(c.raw).toLocaleString('en-MY',{maximumFractionDigits:0})+' ('+pct+')';
+          }
+        }}
+      }
+    }
+  });
+
+  // Notes
+  if (d.notes) {
+    document.getElementById('notes-section').style.display = '';
+    document.getElementById('notes-body').textContent = d.notes;
+  }
+
+  document.getElementById('main-content').style.display = '';
+}
+</script>
+</body>
+</html>
