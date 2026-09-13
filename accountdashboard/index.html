@@ -76,6 +76,14 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;}
 td.c{text-align:center;}
 td.muted{color:var(--muted);}
 .tbl-empty{text-align:center;padding:48px;color:var(--muted);font-size:13px;}
+/* Sticky Actions column */
+thead th.sticky-right,td.sticky-right{
+  position:sticky;right:0;z-index:2;
+  background:#f9fafb;
+  box-shadow:-2px 0 6px rgba(0,0,0,.06);
+}
+tbody tr:hover td.sticky-right{background:#f3f4f6;}
+tbody tr.highlight td.sticky-right{background:#e6faf0;}
 
 /* Colors */
 .pos{color:#15803d;font-weight:700;}
@@ -235,7 +243,7 @@ td.muted{color:var(--muted);}
             <th class="r">Operating Balance</th>
             <th class="r">P&amp;L (@ 45% GP)</th>
             <th class="c">Balance Rate</th>
-            <th class="c">Actions</th>
+            <th class="c sticky-right">Actions</th>
           </tr>
         </thead>
         <tbody id="tbody">
@@ -371,7 +379,7 @@ async function loadData() {
     .from('monthly_summary').select('*').order('month', { ascending: true });
   if (error) {
     document.getElementById('tbody').innerHTML =
-      `<tr><td colspan="11" class="tbl-empty" style="color:var(--red);">Load error: ${error.message}</td></tr>`;
+      `<tr><td colspan="12" class="tbl-empty" style="color:var(--red);">Load error: ${error.message}</td></tr>`;
     return;
   }
   _rows = data || [];
@@ -435,7 +443,7 @@ function renderChart(rows) {
 function renderTable(rows) {
   const tbody = document.getElementById('tbody');
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="11" class="tbl-empty">No data yet · click "Add Month" to get started</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="12" class="tbl-empty">No data yet · click "Add Month" to get started</td></tr>`;
     return;
   }
   const desc = [...rows].sort((a,b)=>b.month.localeCompare(a.month));
@@ -470,7 +478,7 @@ function renderTable(rows) {
       <td class="r ${n>=0?'pos':'neg'}">${RM(n)}</td>
       <td class="r ${pnl>=0?'pos':'neg'}" style="font-weight:700;">${RM(pnl)}</td>
       <td class="c"><span class="mpill ${mgClass}">${mg.toFixed(1)}%</span></td>
-      <td class="c">${actions}</td>
+      <td class="c sticky-right">${actions}</td>
     </tr>`;
   }).join('');
 }
