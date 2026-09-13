@@ -189,14 +189,14 @@ td.muted{color:var(--muted);}
         <div class="ytd-kpi-sub" id="ytd-exp-sub">cumulative</div>
       </div>
       <div>
-        <div class="ytd-kpi-label">Net Profit</div>
+        <div class="ytd-kpi-label">Operating Balance</div>
         <div class="ytd-kpi-val" id="ytd-net">—</div>
         <div class="ytd-kpi-sub" id="ytd-net-sub">revenue − expenses</div>
       </div>
       <div>
-        <div class="ytd-kpi-label">Avg. Profit Margin</div>
+        <div class="ytd-kpi-label">Avg. Balance Rate</div>
         <div class="ytd-kpi-val" id="ytd-margin">—</div>
-        <div class="ytd-kpi-sub">net ÷ revenue</div>
+        <div class="ytd-kpi-sub">operating balance ÷ revenue</div>
       </div>
     </div>
   </div>
@@ -226,8 +226,8 @@ td.muted{color:var(--muted);}
             <th class="c">MoM Rev</th>
             <th class="r">Total Expenses</th>
             <th class="c">MoM Exp</th>
-            <th class="r">Net Profit</th>
-            <th class="c">Margin</th>
+            <th class="r">Operating Balance</th>
+            <th class="c">Balance Rate</th>
             <th class="c">Actions</th>
           </tr>
         </thead>
@@ -510,7 +510,7 @@ function recalc() {
   elRev.textContent = 'Total Revenue: ' + (r ? RM(r) : '—');
   elExp.textContent = 'Total Expenses: ' + (e ? RM(e) : '—');
   elNet.className   = 'f-total ' + (r||e ? (n>=0?'pos':'neg') : '');
-  elNet.textContent = 'Net Profit: ' + (r||e ? RM(n) : '—');
+  elNet.textContent = 'Operating Balance: ' + (r||e ? RM(n) : '—');
 }
 
 async function saveMonth() {
