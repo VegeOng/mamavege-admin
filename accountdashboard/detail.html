@@ -112,10 +112,13 @@ td.muted{color:var(--muted);}
 </div>
 
 <div class="wrap">
-  <div class="page-header">
-    <a href="index.html" class="back-link">← Back to Dashboard</a>
-    <div class="page-title" id="page-title">Loading…</div>
-    <div class="page-sub" id="page-sub"></div>
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+    <div>
+      <a href="index.html" class="back-link">← Back to Dashboard</a>
+      <div class="page-title" id="page-title">Loading…</div>
+      <div class="page-sub" id="page-sub"></div>
+    </div>
+    <button class="btn btn-ghost" id="edit-btn" style="display:none;margin-top:22px;" onclick="openEditModal()">✏️ Edit this month</button>
   </div>
 
   <div id="main-content" style="display:none;">
@@ -205,6 +208,20 @@ td.muted{color:var(--muted);}
   <div id="err-box" class="err-box" style="display:none;"></div>
 </div>
 
+<!-- Edit Modal -->
+<div class="modal-bg" id="modal-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
+  <div style="background:#fff;border-radius:18px;padding:28px;width:100%;max-width:600px;margin:auto;box-shadow:0 16px 48px rgba(0,0,0,.18);">
+    <div style="font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--green);margin-bottom:4px;" id="modal-title">Edit Month</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:22px;" id="modal-sub"></div>
+    <div id="modal-form"></div>
+    <div style="font-size:12px;color:#dc2626;margin-top:10px;display:none;" id="modal-err"></div>
+    <div style="display:flex;gap:10px;margin-top:22px;justify-content:flex-end;flex-wrap:wrap;">
+      <button onclick="closeEditModal()" style="padding:8px 18px;border:1px solid #e5e7eb;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;background:#f3f4f6;color:#374151;font-family:inherit;">Cancel</button>
+      <button id="save-btn" onclick="saveEdit()" style="padding:8px 18px;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;background:#166534;color:#fff;font-family:inherit;">Save</button>
+    </div>
+  </div>
+</div>
+
 <script src="../supabase.min.js"></script>
 <script src="../js/auth/auth.js"></script>
 <script>
@@ -248,7 +265,10 @@ if (!month || !/^\d{4}-\d{2}$/.test(month)) {
   document.getElementById('err-box').textContent = 'Missing or invalid ?month= parameter. Go back and click Details on a month.';
 }
 
+let _ctx, _rowData;
+
 MVAuth.init({ module:'accountdashboard', minRole:'viewer', base:'../' }).then(async ctx => {
+  _ctx = ctx;
   document.getElementById('top-user').textContent = ctx.email;
   if (!month || !/^\d{4}-\d{2}$/.test(month)) return;
 
@@ -258,7 +278,11 @@ MVAuth.init({ module:'accountdashboard', minRole:'viewer', base:'../' }).then(as
   if (error) { showErr('Load error: '+error.message); return; }
   if (!data)  { showErr('No data found for '+mlabel(month)+'. Please add it from the dashboard first.'); return; }
 
+  _rowData = data;
   render(data);
+  if (ctx.role === 'editor' || ctx.role === 'admin') {
+    document.getElementById('edit-btn').style.display = '';
+  }
 });
 
 function showErr(msg) {
@@ -374,6 +398,110 @@ function render(d) {
   }
 
   document.getElementById('main-content').style.display = '';
+}
+
+// ── Edit Modal ──────────────────────────────────────────────────────────────
+
+const REV_FIELDS = [
+  { key:'rev_offline',       label:'Revenue — Offline (MT + GT)' },
+  { key:'rev_online',        label:'Revenue — Online (Shopee / Lazada / TikTok)' },
+  { key:'rev_international', label:'Revenue — International (IB)' },
+];
+
+function fmtNum(v) {
+  return v ? Number(v).toFixed(2) : '';
+}
+
+function buildModalForm(d) {
+  const fld = (key, label, val) =>
+    `<div style="margin-bottom:14px;">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;">${label}</label>
+      <input id="mf_${key}" type="number" step="0.01" min="0" value="${fmtNum(val)}"
+        oninput="updateModalTotals()"
+        style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;">
+    </div>`;
+
+  let html = '<div style="background:#f9fafb;border-radius:10px;padding:14px 16px;margin-bottom:16px;">';
+  html += '<div style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">Revenue</div>';
+  REV_FIELDS.forEach(f => { html += fld(f.key, f.label, d?d[f.key]:0); });
+  html += '<div style="font-size:12px;font-weight:700;color:var(--green);border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">Total Revenue: <span id="mt-rev">RM 0</span></div>';
+  html += '</div>';
+
+  html += '<div style="background:#f9fafb;border-radius:10px;padding:14px 16px;margin-bottom:16px;">';
+  html += '<div style="font-size:11px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">Expenses</div>';
+  EXP_CATS.forEach(f => { html += fld(f.key, f.label, d?d[f.key]:0); });
+  html += '<div style="font-size:12px;font-weight:700;color:#dc2626;border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">Total Expenses: <span id="mt-exp">RM 0</span></div>';
+  html += '</div>';
+
+  html += `<div style="margin-bottom:8px;">
+    <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;">Notes (optional)</label>
+    <textarea id="mf_notes" rows="3" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:9px;font-size:13px;font-family:inherit;resize:vertical;">${d&&d.notes?d.notes:''}</textarea>
+  </div>`;
+
+  if (_ctx && _ctx.role === 'admin') {
+    html += `<div style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px;">
+      <button onclick="confirmDelete()" style="padding:7px 16px;border:1px solid #dc2626;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:#dc2626;font-family:inherit;">Delete this month</button>
+    </div>`;
+  }
+  return html;
+}
+
+function updateModalTotals() {
+  const totalRev = REV_FIELDS.reduce((s,f)=>s+(parseFloat(document.getElementById('mf_'+f.key).value)||0),0);
+  const totalExp = EXP_CATS.reduce((s,f)=>s+(parseFloat(document.getElementById('mf_'+f.key).value)||0),0);
+  document.getElementById('mt-rev').textContent = RM(totalRev);
+  document.getElementById('mt-exp').textContent = RM(totalExp);
+}
+
+function openEditModal() {
+  document.getElementById('modal-title').textContent = 'Edit ' + mlabel(month);
+  document.getElementById('modal-sub').textContent   = 'Update revenue and expense figures for this month.';
+  document.getElementById('modal-form').innerHTML    = buildModalForm(_rowData);
+  document.getElementById('modal-err').style.display = 'none';
+  const bg = document.getElementById('modal-bg');
+  bg.style.display = 'flex';
+  updateModalTotals();
+}
+
+function closeEditModal() {
+  document.getElementById('modal-bg').style.display = 'none';
+}
+
+async function saveEdit() {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const payload = { updated_at: new Date().toISOString() };
+  REV_FIELDS.forEach(f => { payload[f.key] = parseFloat(document.getElementById('mf_'+f.key).value)||0; });
+  EXP_CATS.forEach(f   => { payload[f.key] = parseFloat(document.getElementById('mf_'+f.key).value)||0; });
+  payload.notes = document.getElementById('mf_notes').value.trim();
+
+  const { error } = await _ctx.client
+    .from('monthly_summary').update(payload).eq('month', month);
+
+  btn.disabled = false; btn.textContent = 'Save';
+  if (error) {
+    const e = document.getElementById('modal-err');
+    e.textContent = 'Save failed: ' + error.message;
+    e.style.display = '';
+    return;
+  }
+  closeEditModal();
+  // Reload page to reflect updated data
+  location.reload();
+}
+
+function confirmDelete() {
+  if (confirm('Delete ' + mlabel(month) + '? This action cannot be undone.')) {
+    doDelete();
+  }
+}
+
+async function doDelete() {
+  const { error } = await _ctx.client
+    .from('monthly_summary').delete().eq('month', month);
+  if (error) { alert('Delete failed: '+error.message); return; }
+  location.href = 'index.html';
 }
 </script>
 </body>

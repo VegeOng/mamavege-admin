@@ -76,14 +76,9 @@ td.r{text-align:right;font-variant-numeric:tabular-nums;}
 td.c{text-align:center;}
 td.muted{color:var(--muted);}
 .tbl-empty{text-align:center;padding:48px;color:var(--muted);font-size:13px;}
-/* Sticky Actions column */
-thead th.sticky-right,td.sticky-right{
-  position:sticky;right:0;z-index:2;
-  background:#f9fafb;
-  box-shadow:-2px 0 6px rgba(0,0,0,.06);
-}
-tbody tr:hover td.sticky-right{background:#f3f4f6;}
-tbody tr.highlight td.sticky-right{background:#e6faf0;}
+/* Clickable rows */
+tbody tr.clickable{cursor:pointer;}
+tbody tr.clickable:hover{background:#f0fdf4;}
 
 /* Colors */
 .pos{color:#15803d;font-weight:700;}
@@ -226,7 +221,7 @@ tbody tr.highlight td.sticky-right{background:#e6faf0;}
   <div class="tbl-card">
     <div class="tbl-head">
       <span class="tbl-head-title">All Months</span>
-      <span class="tbl-head-note">MoM = change vs. previous month &nbsp;·&nbsp; Click <b>Details</b> for expense breakdown</span>
+      <span class="tbl-head-note">MoM = change vs. previous month &nbsp;·&nbsp; Click any row for full expense breakdown</span>
     </div>
     <div class="tbl-scroll">
       <table>
@@ -243,7 +238,6 @@ tbody tr.highlight td.sticky-right{background:#e6faf0;}
             <th class="r">Operating Balance</th>
             <th class="r">P&amp;L (@ 45% GP)</th>
             <th class="c">Balance Rate</th>
-            <th class="c sticky-right">Actions</th>
           </tr>
         </thead>
         <tbody id="tbody">
@@ -379,7 +373,7 @@ async function loadData() {
     .from('monthly_summary').select('*').order('month', { ascending: true });
   if (error) {
     document.getElementById('tbody').innerHTML =
-      `<tr><td colspan="12" class="tbl-empty" style="color:var(--red);">Load error: ${error.message}</td></tr>`;
+      `<tr><td colspan="11" class="tbl-empty" style="color:var(--red);">Load error: ${error.message}</td></tr>`;
     return;
   }
   _rows = data || [];
@@ -443,7 +437,7 @@ function renderChart(rows) {
 function renderTable(rows) {
   const tbody = document.getElementById('tbody');
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="12" class="tbl-empty">No data yet · click "Add Month" to get started</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" class="tbl-empty">No data yet · click "Add Month" to get started</td></tr>`;
     return;
   }
   const desc = [...rows].sort((a,b)=>b.month.localeCompare(a.month));
@@ -460,13 +454,8 @@ function renderTable(rows) {
     const momExpHtml = prev ? momBadge(e, exp(prev), true)  : '<span class="mom-na">—</span>';
     const mgClass    = mg>=20?'hi':mg>=10?'mid':'lo';
 
-    const actions = [
-      `<a class="btn btn-blue btn-sm" href="detail.html?month=${row.month}">Details</a>`,
-      canEdit ? `<button class="btn btn-ghost btn-sm" onclick='openModal(${JSON.stringify(row)})'>Edit</button>` : ''
-    ].filter(Boolean).join(' ');
-
     const pnl = r * GP_RATE - e;
-    return `<tr class="${isCur?'highlight':''}">
+    return `<tr class="clickable ${isCur?'highlight':''}" onclick="location.href='detail.html?month=${row.month}'">
       <td class="mcell">${mlabel(row.month)}${isCur?' <span style="font-size:10px;background:#dcfce7;color:#166534;padding:1px 6px;border-radius:10px;font-weight:700;">Current</span>':''}</td>
       <td class="r">${RM(row.rev_offline)}</td>
       <td class="r">${RM(row.rev_online)}</td>
@@ -478,7 +467,6 @@ function renderTable(rows) {
       <td class="r ${n>=0?'pos':'neg'}">${RM(n)}</td>
       <td class="r ${pnl>=0?'pos':'neg'}" style="font-weight:700;">${RM(pnl)}</td>
       <td class="c"><span class="mpill ${mgClass}">${mg.toFixed(1)}%</span></td>
-      <td class="c sticky-right">${actions}</td>
     </tr>`;
   }).join('');
 }
