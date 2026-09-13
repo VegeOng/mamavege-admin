@@ -39,8 +39,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
 
 /* Summary cards */
-.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px;}
-@media(max-width:680px){.summary-grid{grid-template-columns:repeat(2,1fr);}}
+.summary-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:4px;}
+@media(max-width:860px){.summary-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:560px){.summary-grid{grid-template-columns:repeat(2,1fr);}}
 .kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04);position:relative;overflow:hidden;}
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:#d1d5db;}
 .kpi.green::before{background:var(--green2);}
@@ -137,6 +138,11 @@ td.muted{color:var(--muted);}
         <div class="kpi-val" id="kpi-net">—</div>
         <div class="kpi-sub" id="kpi-net-sub"></div>
       </div>
+      <div class="kpi" id="kpi-pnl-card">
+        <div class="kpi-label">P&amp;L (@ 45% GP)</div>
+        <div class="kpi-val" id="kpi-pnl">—</div>
+        <div class="kpi-sub">Rev × 45% − Expenses</div>
+      </div>
       <div class="kpi amber">
         <div class="kpi-label">Balance Rate</div>
         <div class="kpi-val" id="kpi-margin">—</div>
@@ -205,6 +211,7 @@ td.muted{color:var(--muted);}
 document.getElementById('top-date').textContent = new Date().toLocaleDateString('en-MY',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
 
 const RM = v => 'RM ' + Number(v).toLocaleString('en-MY',{minimumFractionDigits:0,maximumFractionDigits:0});
+const GP_RATE = 0.45;
 
 const EXP_CATS = [
   { key:'exp_ads_promotions',   label:'Advertisement & Promotions' },
@@ -269,14 +276,22 @@ function render(d) {
   document.getElementById('page-title').textContent = mlabel(d.month);
   document.getElementById('page-sub').textContent   = 'Full expense breakdown · % of total expenses · % of revenue';
 
+  const pnl = totalRev * GP_RATE - totalExp;
+
   // KPIs
   document.getElementById('kpi-rev').textContent    = RM(totalRev);
   document.getElementById('kpi-exp').textContent    = RM(totalExp);
   const kpiNet = document.getElementById('kpi-net');
   kpiNet.textContent  = RM(net);
   kpiNet.className    = 'kpi-val ' + (net>=0?'pos':'neg');
-  document.getElementById('kpi-net-sub').textContent = net>=0?'Profit':'Loss';
+  document.getElementById('kpi-net-sub').textContent = net>=0?'Surplus':'Deficit';
   document.getElementById('kpi-margin').textContent  = margin.toFixed(1)+'%';
+
+  const kpiPnl  = document.getElementById('kpi-pnl');
+  const kpiCard = document.getElementById('kpi-pnl-card');
+  kpiPnl.textContent  = RM(pnl);
+  kpiPnl.className    = 'kpi-val ' + (pnl>=0?'pos':'neg');
+  kpiCard.style.borderTop = '3px solid ' + (pnl>=0?'#22c55e':'#dc2626');
 
   // Revenue channels
   const channels = [

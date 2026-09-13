@@ -46,8 +46,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .ytd-banner-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
 .ytd-badge{font-size:11px;opacity:.65;text-transform:uppercase;letter-spacing:.1em;}
 .ytd-year{font-size:12px;font-weight:700;opacity:.75;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:20px;}
-.ytd-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
-@media(max-width:680px){.ytd-kpis{grid-template-columns:repeat(2,1fr);}}
+.ytd-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
+@media(max-width:860px){.ytd-kpis{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:560px){.ytd-kpis{grid-template-columns:repeat(2,1fr);}}
 .ytd-kpi-label{font-size:11px;opacity:.65;margin-bottom:4px;}
 .ytd-kpi-val{font-size:22px;font-weight:700;letter-spacing:-.5px;}
 .ytd-kpi-sub{font-size:11px;opacity:.55;margin-top:3px;}
@@ -198,6 +199,11 @@ td.muted{color:var(--muted);}
         <div class="ytd-kpi-val" id="ytd-margin">—</div>
         <div class="ytd-kpi-sub">operating balance ÷ revenue</div>
       </div>
+      <div>
+        <div class="ytd-kpi-label">P&amp;L (@ 45% GP)</div>
+        <div class="ytd-kpi-val" id="ytd-pnl">—</div>
+        <div class="ytd-kpi-sub">rev × 45% − expenses</div>
+      </div>
     </div>
   </div>
 
@@ -227,6 +233,7 @@ td.muted{color:var(--muted);}
             <th class="r">Total Expenses</th>
             <th class="c">MoM Exp</th>
             <th class="r">Operating Balance</th>
+            <th class="r">P&amp;L (@ 45% GP)</th>
             <th class="c">Balance Rate</th>
             <th class="c">Actions</th>
           </tr>
@@ -321,6 +328,7 @@ const CUR_YEAR  = new Date().getFullYear();
 const CUR_MONTH = new Date().toISOString().slice(0,7);
 const RM = v => 'RM ' + Number(v).toLocaleString('en-MY',{minimumFractionDigits:0,maximumFractionDigits:0});
 const PCT = (v,dec=1) => (v>=0?'+':'')+v.toFixed(dec)+'%';
+const GP_RATE = 0.45; // gross profit rate used for P&L calculation
 
 const EXP_CATS = [
   { key:'exp_ads_promotions',   label:'Advertisement & Promotions' },
@@ -382,12 +390,16 @@ function renderYTD(rows) {
   const net    = totRev - totExp;
   const margin = totRev > 0 ? net/totRev*100 : 0;
 
+  const totPnl = totRev * GP_RATE - totExp;
   document.getElementById('ytd-rev').textContent    = ytd.length ? RM(totRev) : '—';
   document.getElementById('ytd-exp').textContent    = ytd.length ? RM(totExp) : '—';
   document.getElementById('ytd-net').textContent    = ytd.length ? RM(net)    : '—';
   document.getElementById('ytd-margin').textContent = ytd.length ? margin.toFixed(1)+'%' : '—';
+  document.getElementById('ytd-pnl').textContent    = ytd.length ? RM(totPnl) : '—';
   document.getElementById('ytd-rev-sub').textContent = ytd.length + ' month' + (ytd.length!==1?'s':'') + ' recorded';
-  document.getElementById('ytd-net-sub').textContent = net >= 0 ? 'Profit' : 'Loss';
+  document.getElementById('ytd-net-sub').textContent = net >= 0 ? 'Surplus' : 'Deficit';
+  // colour ytd-pnl
+  document.getElementById('ytd-pnl').style.color = ytd.length ? (totPnl>=0?'#86efac':'#fca5a5') : '';
 }
 
 /* ── Chart ── */
@@ -445,6 +457,7 @@ function renderTable(rows) {
       canEdit ? `<button class="btn btn-ghost btn-sm" onclick='openModal(${JSON.stringify(row)})'>Edit</button>` : ''
     ].filter(Boolean).join(' ');
 
+    const pnl = r * GP_RATE - e;
     return `<tr class="${isCur?'highlight':''}">
       <td class="mcell">${mlabel(row.month)}${isCur?' <span style="font-size:10px;background:#dcfce7;color:#166534;padding:1px 6px;border-radius:10px;font-weight:700;">Current</span>':''}</td>
       <td class="r">${RM(row.rev_offline)}</td>
@@ -455,6 +468,7 @@ function renderTable(rows) {
       <td class="r">${RM(e)}</td>
       <td class="c">${momExpHtml}</td>
       <td class="r ${n>=0?'pos':'neg'}">${RM(n)}</td>
+      <td class="r ${pnl>=0?'pos':'neg'}" style="font-weight:700;">${RM(pnl)}</td>
       <td class="c"><span class="mpill ${mgClass}">${mg.toFixed(1)}%</span></td>
       <td class="c">${actions}</td>
     </tr>`;
