@@ -227,7 +227,7 @@ td.muted{color:var(--muted);}
 <script>
 document.getElementById('top-date').textContent = new Date().toLocaleDateString('en-MY',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
 
-const RM = v => 'RM ' + Number(v).toLocaleString('en-MY',{minimumFractionDigits:0,maximumFractionDigits:0});
+const RM = v => 'RM ' + Number(v).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
 const GP_RATE = 0.45;
 
 const EXP_CATS = [
@@ -384,7 +384,7 @@ function render(d) {
         tooltip:{ callbacks:{
           label: c => {
             const pct = totalExp>0 ? (c.raw/totalExp*100).toFixed(1)+'%' : '';
-            return ' '+c.label+': RM '+Number(c.raw).toLocaleString('en-MY',{maximumFractionDigits:0})+' ('+pct+')';
+            return ' '+c.label+': RM '+Number(c.raw).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+pct+')';
           }
         }}
       }

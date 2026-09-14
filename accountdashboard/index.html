@@ -328,7 +328,7 @@ document.getElementById('top-date').textContent = new Date().toLocaleDateString(
 
 const CUR_YEAR  = new Date().getFullYear();
 const CUR_MONTH = new Date().toISOString().slice(0,7);
-const RM = v => 'RM ' + Number(v).toLocaleString('en-MY',{minimumFractionDigits:0,maximumFractionDigits:0});
+const RM = v => 'RM ' + Number(v).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
 const PCT = (v,dec=1) => (v>=0?'+':'')+v.toFixed(dec)+'%';
 const GP_RATE = 0.45; // gross profit rate used for P&L calculation
 
